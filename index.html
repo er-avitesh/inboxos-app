@@ -1,0 +1,3303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InboxOS — Unified Gmail Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  /* ---------- design tokens — pastel light ---------- */
+  :root {
+    --bg-0: #fbf7f2;        /* warm cream base */
+    --bg-1: #ffffff;        /* panels */
+    --bg-2: #f5efe8;        /* soft peach-cream */
+    --bg-3: #ece5dc;        /* dusty cream */
+    --bg-4: #dfd5c8;        /* taupe cream */
+    --line: #e8dfd3;        /* soft line */
+    --line-bright: #d4c7b4; /* emphasis line */
+    --ink-0: #3a3340;       /* soft plum ink */
+    --ink-1: #5a5166;       /* secondary ink */
+    --ink-2: #8a8196;       /* muted ink */
+    --ink-3: #b0a7bc;       /* tertiary */
+    --ink-4: #d8d0e0;       /* faintest */
+    --accent: #b8d4a8;       /* sage green */
+    --accent-dim: #94b088;
+    --accent-soft: rgba(184, 212, 168, 0.22);
+    --warn: #e8b88c;         /* peach — for backgrounds/fills */
+    --warn-ink: #b07a4a;     /* deep caramel — for readable text */
+    --danger: #e89ca0;       /* dusty rose — for backgrounds/fills */
+    --danger-ink: #b05a60;   /* deep rose — for readable text */
+    --info: #a8c4dc;         /* powder blue */
+    --success: #b0d4c0;      /* mint */
+
+    /* category tokens — pastel */
+    --cat-eb1a: #e89ca0;     /* dusty rose */
+    --cat-career: #a8c4dc;   /* powder blue */
+    --cat-finance: #e8c48c;  /* buttercream */
+    --cat-college: #a4d4c0;  /* seafoam */
+    --cat-business: #e8b890; /* apricot */
+    --cat-news: #c8a8d4;     /* lavender */
+    --cat-admin: #c4b8c8;    /* mauve gray */
+    --cat-household: #e8b4d0; /* rose petal */
+    --cat-weather: #e89ca0;  /* dusty rose */
+    --cat-delete: #b8b0bc;   /* soft slate */
+
+    --r-sm: 4px;
+    --r-md: 6px;
+    --r-lg: 10px;
+    --r-xl: 14px;
+
+    --font-display: 'Instrument Serif', serif;
+    --font-sans: 'Geist', -apple-system, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-0);
+    color: var(--ink-0);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  /* ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(184, 212, 168, 0.15), transparent 50%),
+      radial-gradient(800px 400px at 90% 110%, rgba(168, 196, 220, 0.12), transparent 50%),
+      radial-gradient(600px 500px at 50% 50%, rgba(232, 180, 208, 0.06), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #root { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; }
+
+  /* ---------- typography ---------- */
+  .display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-1);
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-right: 14px;
+    border-right: 1px solid var(--line);
+    height: 100%;
+  }
+  .brand-logo {
+    width: 22px; height: 22px;
+    background: var(--accent);
+    border-radius: 5px;
+    display: grid; place-items: center;
+    color: #3a3340;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .brand-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-style: italic;
+    letter-spacing: -0.02em;
+  }
+  .brand-name em { font-style: normal; color: var(--accent); font-family: var(--font-mono); font-size: 13px; font-weight: 500; letter-spacing: 0; }
+
+  .top-nav { display: flex; gap: 2px; align-items: center; height: 100%; }
+  .top-nav-item {
+    padding: 0 12px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    color: var(--ink-2);
+    font-size: 12.5px;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+  }
+  .top-nav-item:hover { color: var(--ink-0); background: var(--bg-3); }
+  .top-nav-item.active { color: var(--ink-0); background: var(--bg-3); }
+
+  .top-spacer { flex: 1; }
+
+  /* mode toggle */
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 2px;
+    height: 28px;
+  }
+  .mode-toggle button {
+    border: none;
+    background: transparent;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 0 10px;
+    height: 100%;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: all 0.12s ease;
+  }
+  .mode-toggle button.active {
+    background: var(--bg-1);
+    color: var(--ink-0);
+    box-shadow: 0 1px 0 rgba(90, 81, 102, 0.04);
+  }
+  .mode-toggle button.active.mode-b { color: #6a8858; }
+  .mode-toggle button.active.mode-c { color: #5a8099; }
+  .mode-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .icon-btn {
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .icon-btn:hover { background: var(--bg-3); color: var(--ink-0); border-color: var(--line); }
+
+  /* ---------- main layout ---------- */
+  .main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 240px 1fr 340px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .main.single { grid-template-columns: 1fr; }
+
+  /* ---------- sidebar ---------- */
+  .sidebar {
+    border-right: 1px solid var(--line);
+    background: var(--bg-1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sidebar-scroll { overflow-y: auto; flex: 1; padding: 14px 0; }
+  .side-section { padding: 0 14px; margin-bottom: 18px; }
+  .side-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .side-label .count { color: var(--ink-2); }
+
+  /* accounts list */
+  .account-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 8px;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    color: var(--ink-1);
+    font-size: 12.5px;
+    margin: 0 -8px;
+    transition: background 0.12s ease;
+  }
+  .account-item:hover { background: var(--bg-3); }
+  .account-item.active { background: var(--bg-3); color: var(--ink-0); }
+  .account-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.04);
+  }
+  .account-item.warning { color: var(--warn-ink); }
+  .account-item .count-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-2);
+    background: var(--bg-3);
+    padding: 1px 6px;
+    border-radius: 9px;
+    min-width: 18px;
+    text-align: center;
+  }
+  .account-item.active .count-badge { background: var(--bg-4); color: var(--ink-0); }
+
+  .side-btn {
+    width: 100%;
+    padding: 7px 10px;
+    background: transparent;
+    border: 1px dashed var(--line-bright);
+    border-radius: var(--r-md);
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .side-btn:hover { border-color: var(--accent-dim); color: #6a8858; background: var(--accent-soft); }
+
+  /* categories */
+  .cat-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 8px;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    color: var(--ink-1);
+    font-size: 12.5px;
+    margin: 0 -8px;
+    transition: background 0.12s ease;
+  }
+  .cat-item:hover { background: var(--bg-3); }
+  .cat-item.active { background: var(--bg-3); color: var(--ink-0); }
+  .cat-swatch { width: 3px; height: 14px; border-radius: 1px; flex-shrink: 0; }
+  .cat-label { flex: 1; }
+  .cat-count { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3); }
+
+  /* eb1a radar */
+  .radar-item {
+    padding: 8px 10px;
+    border-radius: var(--r-md);
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .radar-item:hover { border-color: var(--cat-eb1a); }
+  .radar-criterion {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cat-eb1a);
+    margin-bottom: 3px;
+  }
+  .radar-subject {
+    font-size: 11.5px;
+    color: var(--ink-0);
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .radar-sender { font-size: 10.5px; color: var(--ink-2); margin-top: 3px; }
+
+  /* ---------- email list ---------- */
+  .list-panel {
+    background: var(--bg-0);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .list-header {
+    padding: 10px 18px 10px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .list-title {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .list-title-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-left: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .list-actions { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+
+  .filter-bar {
+    padding: 8px 18px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    background: var(--bg-1);
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+  .chip {
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    color: var(--ink-1);
+    font-size: 11.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: all 0.12s ease;
+    font-family: inherit;
+  }
+  .chip:hover { border-color: var(--line-bright); }
+  .chip.active { background: var(--ink-0); color: var(--bg-0); border-color: var(--ink-0); }
+  .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  .email-list { flex: 1; overflow-y: auto; }
+  .email-row {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 4px 20px 1fr auto;
+    gap: 10px;
+    align-items: start;
+    transition: background 0.1s ease;
+    position: relative;
+  }
+  .email-row:hover { background: var(--bg-1); }
+  .email-row.selected { background: var(--bg-2); }
+  .email-row.unread .email-subject { font-weight: 600; color: var(--ink-0); }
+  .email-row.unread::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 2px; height: 60%;
+    background: var(--accent-dim);
+    border-radius: 2px;
+  }
+
+  .email-account-bar { width: 2px; border-radius: 2px; align-self: stretch; }
+  .email-priority { width: 4px; height: 4px; border-radius: 50%; margin-top: 8px; background: var(--ink-3); }
+  .email-priority.high { background: var(--danger); }
+  .email-priority.medium { background: var(--warn); }
+
+  .email-content { min-width: 0; }
+  .email-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+  }
+  .email-sender {
+    font-size: 12.5px;
+    color: var(--ink-1);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 220px;
+  }
+  .email-account-pill {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--bg-3);
+    color: var(--ink-2);
+    flex-shrink: 0;
+  }
+  .email-subject {
+    font-size: 13px;
+    color: var(--ink-1);
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+  .email-snippet {
+    font-size: 12px;
+    color: var(--ink-2);
+    line-height: 1.4;
+    margin-top: 2px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+  .email-ai-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--ink-2);
+    margin-top: 6px;
+    padding: 2px 6px;
+    background: var(--bg-2);
+    border-radius: 3px;
+    border: 1px solid var(--line);
+  }
+  .email-ai-tag.eb1a { color: var(--cat-eb1a); border-color: rgba(232, 156, 160, 0.45); background: rgba(232, 156, 160, 0.12); }
+  .email-cat-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+
+  .email-time {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+
+  /* empty states */
+  .empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    color: var(--ink-3);
+  }
+  .empty-icon {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 52px;
+    color: var(--ink-4);
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+  .empty-title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 20px;
+    color: var(--ink-1);
+    margin-bottom: 6px;
+  }
+  .empty-text { font-size: 12.5px; color: var(--ink-2); max-width: 360px; line-height: 1.55; }
+
+  /* ---------- detail panel ---------- */
+  .detail-panel {
+    border-left: 1px solid var(--line);
+    background: var(--bg-1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .detail-scroll { flex: 1; overflow-y: auto; }
+  .detail-header {
+    padding: 14px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .detail-subject {
+    font-family: var(--font-display);
+    font-size: 19px;
+    line-height: 1.25;
+    color: var(--ink-0);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .detail-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .detail-from { color: var(--ink-1); font-weight: 500; }
+  .detail-routing {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    font-size: 11.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .routing-label {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
+  /* ai panel */
+  .ai-panel {
+    margin: 14px;
+    padding: 12px;
+    background: linear-gradient(180deg, rgba(184, 212, 168, 0.18), rgba(184, 212, 168, 0.04));
+    border: 1px solid rgba(184, 212, 168, 0.4);
+    border-radius: var(--r-lg);
+    box-shadow: 0 1px 0 rgba(148, 176, 136, 0.1);
+  }
+  .ai-panel.placeholder {
+    background: var(--bg-2);
+    border: 1px dashed var(--line-bright);
+    box-shadow: none;
+  }
+  .ai-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6a8858;
+    margin-bottom: 10px;
+  }
+  .ai-placeholder .ai-header { color: var(--ink-3); }
+  .ai-summary { font-size: 12.5px; color: var(--ink-0); line-height: 1.5; margin-bottom: 10px; }
+  .ai-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .ai-stat {
+    padding: 8px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+  }
+  .ai-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    margin-bottom: 3px;
+  }
+  .ai-stat-value { font-size: 12px; color: var(--ink-0); font-weight: 500; }
+  .eb1a-callout {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(232, 156, 160, 0.14);
+    border: 1px solid rgba(232, 156, 160, 0.35);
+    border-radius: var(--r-md);
+  }
+  .eb1a-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cat-eb1a);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .eb1a-explanation { font-size: 12px; color: var(--ink-1); line-height: 1.5; margin-bottom: 8px; }
+
+  /* detail body */
+  .detail-body {
+    padding: 14px;
+    font-size: 13px;
+    color: var(--ink-1);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* detail actions */
+  .detail-actions {
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: var(--bg-1);
+    flex-shrink: 0;
+  }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    height: 30px;
+    padding: 0 12px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    color: var(--ink-0);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.14s ease;
+    white-space: nowrap;
+    box-shadow: 0 1px 0 rgba(90, 81, 102, 0.03);
+  }
+  .btn:hover { background: var(--bg-2); border-color: var(--line-bright); color: var(--ink-0); box-shadow: 0 2px 6px rgba(90, 81, 102, 0.08); }
+  .btn.primary { background: var(--accent); color: #3a3340; border-color: var(--accent-dim); font-weight: 500; box-shadow: 0 1px 0 rgba(148, 176, 136, 0.25); }
+  .btn.primary:hover { background: #a4c898; border-color: #8aa880; color: #3a3340; box-shadow: 0 3px 10px rgba(148, 176, 136, 0.3); }
+  .btn.danger { color: #b05a60; }
+  .btn.danger:hover { background: rgba(232, 156, 160, 0.15); border-color: var(--danger); }
+  .btn.sm { height: 26px; padding: 0 9px; font-size: 11.5px; }
+  .btn.lg { height: 38px; padding: 0 18px; font-size: 13px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ---------- reply composer ---------- */
+  .composer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(90, 81, 102, 0.28);
+    backdrop-filter: blur(6px);
+    z-index: 50;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 0;
+  }
+  .composer {
+    width: min(720px, 100%);
+    height: min(86vh, 720px);
+    background: var(--bg-1);
+    border: 1px solid var(--line-bright);
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    margin-right: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -20px 60px rgba(90, 81, 102, 0.18);
+    overflow: hidden;
+  }
+  .composer-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-2);
+    flex-shrink: 0;
+  }
+  .composer-head h3 { font-family: var(--font-display); font-size: 18px; font-style: italic; letter-spacing: -0.01em; font-weight: 400; }
+  .composer-fields { padding: 10px 16px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+  .composer-field {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--bg-2);
+    align-items: center;
+  }
+  .composer-field:last-child { border-bottom: none; }
+  .composer-field label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .composer-field input, .composer-field .field-static {
+    background: transparent;
+    border: none;
+    color: var(--ink-0);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    padding: 2px 0;
+    width: 100%;
+  }
+  .field-static { color: var(--ink-1); }
+  .field-locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .lock-pill {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: #b07a4a;
+    background: rgba(232, 184, 140, 0.2);
+    border: 1px solid rgba(232, 184, 140, 0.4);
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .composer-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .composer-textarea {
+    flex: 1;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    color: var(--ink-0);
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.6;
+    outline: none;
+    resize: none;
+  }
+  .composer-quote {
+    padding: 12px 16px;
+    background: var(--bg-0);
+    border-top: 1px solid var(--line);
+    font-size: 11.5px;
+    color: var(--ink-2);
+    max-height: 180px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    flex-shrink: 0;
+  }
+  .composer-foot {
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-2);
+    flex-shrink: 0;
+  }
+
+  /* ---------- usage dashboard ---------- */
+  .page {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 32px 60px;
+    max-width: 100%;
+  }
+  .page-header {
+    margin-bottom: 28px;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .page-subtitle { color: var(--ink-2); font-size: 13px; max-width: 520px; }
+
+  .tab-row {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+  .tab {
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.12s ease;
+  }
+  .tab:hover { color: var(--ink-0); }
+  .tab.active { color: var(--ink-0); }
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent-dim);
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg-1);
+    padding: 16px;
+  }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    color: var(--ink-0);
+    line-height: 1;
+  }
+  .stat-sub {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-2);
+    margin-top: 6px;
+  }
+  .stat-value.positive { color: var(--accent-dim); }
+  .stat-value.warn { color: var(--warn-ink); }
+  .stat-value.danger { color: var(--danger-ink); }
+
+  .chart-card {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .chart-card h3 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+  .chart-container { height: 240px; position: relative; }
+
+  .budget-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .budget-card {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 20px;
+  }
+  .budget-bar {
+    height: 10px;
+    background: var(--bg-3);
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 12px 0;
+    position: relative;
+  }
+  .budget-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+    transition: width 0.4s ease;
+  }
+  .budget-fill.warn { background: linear-gradient(90deg, #d4a168, var(--warn)); }
+  .budget-fill.danger { background: linear-gradient(90deg, #c47880, var(--danger)); }
+  .budget-amounts {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+
+  /* ---------- saved indicator ---------- */
+  .saved-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-2);
+    transition: all 0.25s ease;
+  }
+  .saved-indicator.flash {
+    background: var(--accent-soft);
+    border-color: var(--accent-dim);
+    color: #6a8858;
+  }
+  .saved-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ink-3);
+    transition: all 0.25s ease;
+  }
+  .saved-indicator.flash .saved-dot {
+    background: var(--accent-dim);
+    box-shadow: 0 0 0 3px rgba(184, 212, 168, 0.3);
+    animation: pulse-saved 0.6s ease;
+  }
+  @keyframes pulse-saved {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+  /* ---------- settings ---------- */
+  .settings-section {
+    margin-bottom: 32px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+  .settings-section h2 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    font-weight: 400;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+  }
+  .settings-body { padding: 20px; }
+  .form-row { margin-bottom: 16px; }
+  .form-row:last-child { margin-bottom: 0; }
+  .form-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+  .form-help { font-size: 11.5px; color: var(--ink-3); margin-top: 6px; line-height: 1.5; }
+  .input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    color: var(--ink-0);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .input:focus { border-color: var(--accent); }
+  .input.mono { font-family: var(--font-mono); }
+
+  /* ---------- onboarding ---------- */
+  .onboard {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--bg-0);
+    z-index: 100;
+    overflow-y: auto;
+  }
+  .onboard-card {
+    width: min(620px, calc(100% - 40px));
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    padding: 36px 40px;
+    margin: 40px 0;
+    position: relative;
+  }
+  .onboard-step {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    margin-bottom: 16px;
+  }
+  .onboard h1 {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 44px;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+  .onboard p { color: var(--ink-1); font-size: 14px; line-height: 1.65; margin-bottom: 14px; }
+  .onboard .muted { color: var(--ink-2); font-size: 12.5px; }
+  .onboard ol, .onboard ul { margin: 14px 0 20px 20px; color: var(--ink-1); font-size: 13px; }
+  .onboard li { margin-bottom: 6px; line-height: 1.55; }
+  .onboard code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    background: var(--bg-3);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #6a8858;
+  }
+  .onboard-footer { display: flex; gap: 8px; margin-top: 24px; align-items: center; }
+  .onboard-progress {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .onboard-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--ink-4);
+  }
+  .onboard-dot.active { background: var(--accent-dim); }
+  .onboard-dot.done { background: var(--accent); }
+
+  /* ---------- toast ---------- */
+  .toast-stack {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 380px;
+  }
+  .toast {
+    padding: 12px 14px;
+    background: var(--bg-1);
+    border: 1px solid var(--line-bright);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--r-md);
+    font-size: 12.5px;
+    color: var(--ink-0);
+    box-shadow: 0 10px 30px rgba(90, 81, 102, 0.15);
+    animation: slide-in 0.2s ease;
+  }
+  .toast.error { border-left-color: var(--danger); }
+  .toast.warn { border-left-color: var(--warn); }
+  @keyframes slide-in {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* ---------- banner ---------- */
+  .banner {
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12.5px;
+    border-bottom: 1px solid var(--line);
+  }
+  .banner.warn { background: rgba(232, 184, 140, 0.22); color: #b07a4a; border-bottom-color: rgba(232, 184, 140, 0.4); }
+  .banner.danger { background: rgba(232, 156, 160, 0.22); color: #b05a60; border-bottom-color: rgba(232, 156, 160, 0.4); }
+
+  /* ---------- evidence modal ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(90, 81, 102, 0.32);
+    backdrop-filter: blur(6px);
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+  }
+  .modal {
+    width: min(840px, 100%);
+    max-height: 80vh;
+    background: var(--bg-1);
+    border: 1px solid var(--line-bright);
+    border-radius: var(--r-xl);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-2);
+  }
+  .modal-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+  .evidence-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .evidence-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    border-bottom: 1px solid var(--line);
+    font-weight: 500;
+  }
+  .evidence-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-1);
+    vertical-align: top;
+  }
+  .crit-pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    background: rgba(232, 156, 160, 0.18);
+    color: #b05a60;
+    border-radius: 3px;
+    border: 1px solid rgba(232, 156, 160, 0.4);
+  }
+
+  /* ---------- scrollbars ---------- */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--bg-4); }
+
+  /* ---------- spinner ---------- */
+  .spinner {
+    width: 12px; height: 12px;
+    border: 1.5px solid var(--ink-4);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- small utilities ---------- */
+  .hstack { display: flex; align-items: center; gap: 8px; }
+  .vstack { display: flex; flex-direction: column; gap: 8px; }
+  .divider { height: 1px; background: var(--line); margin: 12px 0; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--bg-3);
+    color: var(--ink-2);
+  }
+
+  /* responsive */
+  @media (max-width: 1100px) {
+    .main { grid-template-columns: 200px 1fr 300px; }
+    .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar, .detail-panel { display: none; }
+    .sidebar.mobile-open, .detail-panel.mobile-open {
+      display: flex;
+      position: fixed;
+      inset: 44px 0 0 0;
+      z-index: 30;
+      width: 100%;
+    }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .budget-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-type="module">
+/* =========================================================================
+   InboxOS — Complete application
+   Production-ready single-file implementation
+   ========================================================================= */
+
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+/* ============================================================
+   CONFIG & CONSTANTS
+   ============================================================ */
+
+const ANTHROPIC_MODEL = 'claude-sonnet-4-20250514';
+const COST_INPUT_PER_TOKEN = 0.000003;
+const COST_OUTPUT_PER_TOKEN = 0.000015;
+
+const DEFAULT_CATEGORIES = [
+  { id: 'eb1a', label: 'EB-1A opportunity', color: '#e89ca0', desc: 'Judging invitations, speaking requests, media mentions, citation alerts, award nominations' },
+  { id: 'career', label: 'Career', color: '#a8c4dc', desc: 'Job alerts, recruiters, interviews' },
+  { id: 'finance', label: 'Finance', color: '#e8c48c', desc: 'Statements, payments, invoices, tax docs' },
+  { id: 'college', label: 'College / IEEE', color: '#a4d4c0', desc: 'Courses, professors, IEEE, deadlines' },
+  { id: 'business', label: 'Laundry business', color: '#e8b890', desc: 'Suppliers, customers, invoices, equipment' },
+  { id: 'news', label: 'News / newsletters', color: '#c8a8d4', desc: 'Newsletters, digests, blogs' },
+  { id: 'admin', label: 'Admin / official', color: '#c4b8c8', desc: 'USCIS, government, DMV, utilities, legal' },
+  { id: 'household', label: 'Household', color: '#e8b4d0', desc: 'Home purchases, appliances, services' },
+  { id: 'weather_alerts', label: 'Alerts', color: '#e89ca0', desc: 'Weather, neighborhood, emergencies' },
+  { id: 'delete', label: 'Delete queue', color: '#b8b0bc', desc: 'Promos, dead newsletters, no-reply marketing' },
+];
+
+const DEFAULT_ACCOUNT_COLORS = ['#b8d4a8', '#a8c4dc', '#e8b4d0', '#a4d4c0', '#e8c48c', '#c8a8d4', '#e8b890', '#e89ca0', '#c4b8c8', '#b0d4c0'];
+const DEFAULT_ACCOUNT_LABELS = ['Personal 1', 'Personal 2', 'Wife', 'College', 'Business', 'Account 6', 'Account 7', 'Account 8', 'Account 9', 'Account 10'];
+
+const OAUTH_SCOPES = 'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.send';
+const GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
+const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
+const GMAIL_API_BASE = 'https://www.googleapis.com/gmail/v1/users/me';
+
+const CRITERION_LABELS = {
+  judging: 'Judging',
+  publications: 'Publications',
+  critical_role: 'Critical role',
+  media: 'Media coverage',
+  high_salary: 'High salary',
+  awards: 'Awards',
+  memberships: 'Memberships',
+  contributions: 'Original contributions',
+};
+const CRITERION_RANK = {
+  judging: 1, publications: 2, awards: 3, media: 4,
+  critical_role: 5, memberships: 6, contributions: 7, high_salary: 8,
+};
+
+/* ============================================================
+   STORAGE LAYER
+   ============================================================ */
+
+const storage = {
+  get(key, fallback = null) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      return JSON.parse(raw);
+    } catch { return fallback; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error('Storage write failed:', e); }
+  },
+  remove(key) { try { localStorage.removeItem(key); } catch {} },
+  keys() { return Object.keys(localStorage); },
+};
+
+function loadConfig() {
+  return storage.get('inboxos_config', {
+    googleClientId: '',
+    anthropicApiKey: '',
+    budgetCapMonthly: 10.0,
+    defaultMode: 'c',
+    currentMode: 'c',
+    categories: DEFAULT_CATEGORIES,
+    onboardingComplete: false,
+  });
+}
+
+function saveConfig(config) { storage.set('inboxos_config', config); }
+
+function loadAccounts() {
+  const accounts = [];
+  for (const key of storage.keys()) {
+    if (key.startsWith('inboxos_account_')) {
+      const account = storage.get(key);
+      if (account) accounts.push(account);
+    }
+  }
+  return accounts.sort((a, b) => (a.order || 0) - (b.order || 0));
+}
+
+function saveAccount(account) { storage.set(`inboxos_account_${account.id}`, account); }
+function removeAccount(id) { storage.remove(`inboxos_account_${id}`); }
+
+function loadAnalysis(threadId) { return storage.get(`inboxos_analysis_${threadId}`); }
+function saveAnalysis(a) { storage.set(`inboxos_analysis_${a.threadId}`, a); }
+
+function loadUsageLog() { return storage.get('inboxos_usage_log', []); }
+function appendUsage(record) {
+  const log = loadUsageLog();
+  log.push(record);
+  if (log.length > 5000) log.splice(0, log.length - 5000);
+  storage.set('inboxos_usage_log', log);
+}
+
+function loadEvidence() { return storage.get('inboxos_eb1a_evidence', []); }
+function saveEvidence(list) { storage.set('inboxos_eb1a_evidence', list); }
+
+/* ============================================================
+   PKCE HELPERS
+   ============================================================ */
+
+function base64UrlEncode(bytes) {
+  const str = btoa(String.fromCharCode(...new Uint8Array(bytes)));
+  return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function generatePKCE() {
+  const bytes = new Uint8Array(64);
+  crypto.getRandomValues(bytes);
+  const verifier = base64UrlEncode(bytes).slice(0, 86);
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  const challenge = base64UrlEncode(hash);
+  return { verifier, challenge };
+}
+
+function randomId() {
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* ============================================================
+   OAUTH FLOW
+   ============================================================ */
+
+async function startOAuthFlow(clientId) {
+  if (!clientId) throw new Error('Google OAuth Client ID not set. Configure it in Settings.');
+  const { verifier, challenge } = await generatePKCE();
+  const state = randomId();
+  const redirectUri = window.location.origin + window.location.pathname;
+
+  sessionStorage.setItem(`oauth_verifier_${state}`, verifier);
+  sessionStorage.setItem(`oauth_redirect_${state}`, redirectUri);
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    scope: OAUTH_SCOPES,
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+    access_type: 'offline',
+    prompt: 'consent',
+    state,
+  });
+
+  const url = `${GOOGLE_AUTH_ENDPOINT}?${params.toString()}`;
+  const popup = window.open(url, 'inboxos_oauth', 'width=520,height=640,left=' + ((screen.width-520)/2) + ',top=' + ((screen.height-640)/2));
+  if (!popup) throw new Error('Popup blocked. Please allow popups for this site.');
+
+  return new Promise((resolve, reject) => {
+    const handleMessage = async (event) => {
+      if (event.origin !== window.location.origin) return;
+      if (!event.data || event.data.type !== 'oauth_callback') return;
+      window.removeEventListener('message', handleMessage);
+      try {
+        const code = event.data.code;
+        const returnedState = event.data.state;
+        if (returnedState !== state) throw new Error('State mismatch — OAuth flow was tampered with.');
+        const savedVerifier = sessionStorage.getItem(`oauth_verifier_${state}`);
+        const savedRedirect = sessionStorage.getItem(`oauth_redirect_${state}`);
+        sessionStorage.removeItem(`oauth_verifier_${state}`);
+        sessionStorage.removeItem(`oauth_redirect_${state}`);
+
+        const tokenRes = await fetch(GOOGLE_TOKEN_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            grant_type: 'authorization_code',
+            client_id: clientId,
+            code,
+            redirect_uri: savedRedirect,
+            code_verifier: savedVerifier,
+          }),
+        });
+        if (!tokenRes.ok) {
+          const err = await tokenRes.text();
+          throw new Error('Token exchange failed: ' + err);
+        }
+        const tokens = await tokenRes.json();
+
+        // fetch profile to get email
+        const profileRes = await fetch(`${GMAIL_API_BASE}/profile`, {
+          headers: { Authorization: 'Bearer ' + tokens.access_token },
+        });
+        if (!profileRes.ok) throw new Error('Failed to fetch Gmail profile');
+        const profile = await profileRes.json();
+
+        resolve({
+          email: profile.emailAddress,
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token || '',
+          tokenExpiry: Date.now() + (tokens.expires_in * 1000),
+        });
+      } catch (e) { reject(e); }
+    };
+    window.addEventListener('message', handleMessage);
+
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener('message', handleMessage);
+        reject(new Error('OAuth popup closed before completion.'));
+      }
+    }, 500);
+  });
+}
+
+// check for OAuth callback on page load
+function handleOAuthRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const state = params.get('state');
+  if (code && state && window.opener) {
+    window.opener.postMessage({ type: 'oauth_callback', code, state }, window.location.origin);
+    window.close();
+    return true;
+  }
+  return false;
+}
+
+async function refreshAccessToken(account, clientId) {
+  if (!account.refreshToken) throw new Error('No refresh token — reconnect required');
+  const res = await fetch(GOOGLE_TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: clientId,
+      refresh_token: account.refreshToken,
+    }),
+  });
+  if (!res.ok) throw new Error('Refresh failed');
+  const t = await res.json();
+  return {
+    ...account,
+    accessToken: t.access_token,
+    tokenExpiry: Date.now() + (t.expires_in * 1000),
+    status: 'active',
+  };
+}
+
+/* ============================================================
+   GMAIL API
+   ============================================================ */
+
+async function withToken(account, clientId, setAccount) {
+  if (!account || account.status === 'needs_reconnect') throw new Error('Account needs reconnect');
+  if (Date.now() > account.tokenExpiry - 5 * 60 * 1000) {
+    try {
+      const refreshed = await refreshAccessToken(account, clientId);
+      saveAccount(refreshed);
+      setAccount && setAccount(refreshed);
+      return refreshed.accessToken;
+    } catch (e) {
+      const bad = { ...account, status: 'needs_reconnect' };
+      saveAccount(bad);
+      setAccount && setAccount(bad);
+      throw e;
+    }
+  }
+  return account.accessToken;
+}
+
+async function gmailFetch(path, options, token) {
+  const res = await fetch(`${GMAIL_API_BASE}${path}`, {
+    ...options,
+    headers: { ...(options?.headers || {}), Authorization: 'Bearer ' + token },
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Gmail API ${res.status}: ${txt}`);
+  }
+  return res.json();
+}
+
+async function listThreads(account, clientId, setAccount, query = 'in:inbox', maxResults = 25) {
+  const token = await withToken(account, clientId, setAccount);
+  const q = new URLSearchParams({ q: query, maxResults: String(maxResults) });
+  return gmailFetch(`/threads?${q}`, { method: 'GET' }, token);
+}
+
+async function getThread(account, clientId, setAccount, threadId) {
+  const token = await withToken(account, clientId, setAccount);
+  return gmailFetch(`/threads/${threadId}?format=full`, { method: 'GET' }, token);
+}
+
+async function listLabels(account, clientId, setAccount) {
+  const token = await withToken(account, clientId, setAccount);
+  return gmailFetch('/labels', { method: 'GET' }, token);
+}
+
+async function createLabel(account, clientId, setAccount, name) {
+  const token = await withToken(account, clientId, setAccount);
+  return gmailFetch('/labels', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, labelListVisibility: 'labelShow', messageListVisibility: 'show' }),
+  }, token);
+}
+
+async function modifyThread(account, clientId, setAccount, threadId, addLabelIds = [], removeLabelIds = []) {
+  const token = await withToken(account, clientId, setAccount);
+  return gmailFetch(`/threads/${threadId}/modify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ addLabelIds, removeLabelIds }),
+  }, token);
+}
+
+async function trashThread(account, clientId, setAccount, threadId) {
+  const token = await withToken(account, clientId, setAccount);
+  return gmailFetch(`/threads/${threadId}/trash`, { method: 'POST' }, token);
+}
+
+async function sendReply(account, clientId, setAccount, { to, subject, body, threadId, inReplyTo, references }) {
+  const token = await withToken(account, clientId, setAccount);
+  const headers = [
+    `From: ${account.email}`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    `In-Reply-To: ${inReplyTo}`,
+    `References: ${references || inReplyTo}`,
+    'Content-Type: text/plain; charset=UTF-8',
+    'MIME-Version: 1.0',
+  ].join('\r\n');
+  const raw = headers + '\r\n\r\n' + body;
+  const encoded = base64UrlEncode(new TextEncoder().encode(raw));
+  return gmailFetch('/messages/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ raw: encoded, threadId }),
+  }, token);
+}
+
+/* ============================================================
+   EMAIL PARSING
+   ============================================================ */
+
+function decodeBase64Url(str) {
+  try {
+    const padded = str.replace(/-/g, '+').replace(/_/g, '/') + '=='.slice(0, (4 - str.length % 4) % 4);
+    const binary = atob(padded);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  } catch { return ''; }
+}
+
+function extractBody(payload) {
+  if (!payload) return '';
+  if (payload.body && payload.body.data && (payload.mimeType === 'text/plain' || payload.mimeType === 'text/html')) {
+    const raw = decodeBase64Url(payload.body.data);
+    if (payload.mimeType === 'text/html') {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = raw;
+      return (tmp.textContent || tmp.innerText || '').trim();
+    }
+    return raw;
+  }
+  if (payload.parts) {
+    // prefer text/plain
+    const plain = payload.parts.find(p => p.mimeType === 'text/plain');
+    if (plain) return extractBody(plain);
+    for (const p of payload.parts) {
+      const b = extractBody(p);
+      if (b) return b;
+    }
+  }
+  return '';
+}
+
+function parseHeaderValue(headers, name) {
+  const h = headers?.find(x => x.name.toLowerCase() === name.toLowerCase());
+  return h?.value || '';
+}
+
+function parseFromHeader(from) {
+  const m = from.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
+  if (m) return { name: m[1].trim() || m[2], email: m[2].trim() };
+  return { name: from.trim(), email: from.trim() };
+}
+
+function normalizeThread(thread, account) {
+  const messages = thread.messages || [];
+  const last = messages[messages.length - 1];
+  if (!last) return null;
+  const headers = last.payload?.headers || [];
+  const from = parseFromHeader(parseHeaderValue(headers, 'From'));
+  const subject = parseHeaderValue(headers, 'Subject') || '(no subject)';
+  const date = parseHeaderValue(headers, 'Date');
+  const messageIdHeader = parseHeaderValue(headers, 'Message-ID') || parseHeaderValue(headers, 'Message-Id');
+  const references = parseHeaderValue(headers, 'References');
+  const body = extractBody(last.payload);
+  const snippet = thread.snippet || last.snippet || '';
+  const labels = last.labelIds || [];
+  const isUnread = labels.includes('UNREAD');
+  return {
+    threadId: thread.id,
+    messageId: last.id,
+    messageIdHeader,
+    references,
+    subject,
+    from,
+    date: date ? new Date(date).getTime() : Date.now(),
+    body: body.slice(0, 8000),
+    snippet,
+    labels,
+    isUnread,
+    receivingAccountId: account.id,
+    receivingAccountEmail: account.email,
+  };
+}
+
+function formatTime(timestamp) {
+  const d = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return d.toLocaleDateString([], { weekday: 'short' });
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+/* ============================================================
+   CLAUDE API
+   ============================================================ */
+
+async function callClaude({ apiKey, systemPrompt, userPrompt }) {
+  if (!apiKey) throw new Error('Anthropic API key not set');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+    }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Anthropic API ${res.status}: ${txt}`);
+  }
+  const data = await res.json();
+  const text = data.content.map(b => b.type === 'text' ? b.text : '').join('');
+  return {
+    text,
+    inputTokens: data.usage?.input_tokens || 0,
+    outputTokens: data.usage?.output_tokens || 0,
+  };
+}
+
+function buildTriageSystemPrompt(categories) {
+  const catList = categories.map(c => c.id).join(', ');
+  return `You are an AI email assistant for Avitesh Kesharwani. He is a researcher and software engineer living in Concord, North Carolina. He is actively pursuing an EB-1A extraordinary ability visa petition. He is also a part-time student and owns a laundry business. He has up to 10 Gmail accounts (personal, family, college, business).
+
+Your job is to triage an incoming email and return a structured JSON response only. No preamble, no markdown, no code fences — just raw JSON.
+
+EB-1A criteria to watch for:
+- judging: Invitations to review papers, judge competitions, review grants
+- publications: Citation alerts, co-author requests, publication acceptances
+- critical_role: Job offers or recognition noting his leadership/critical role
+- media: Press coverage, interview requests, podcast invitations
+- high_salary: Job offers with exceptional compensation
+- awards: Award nominations or recognitions
+- memberships: Invitations to distinguished professional organizations
+- contributions: Evidence of original contributions cited or built upon by others
+
+Categories available: ${catList}
+
+Response format (JSON only):
+{
+  "category": "<category_id>",
+  "summary": "<one sentence describing what this email is and what it wants>",
+  "suggestedAction": "<one concrete action: reply, archive, save, unsubscribe, review>",
+  "priority": "<high|medium|low>",
+  "eb1aSignal": {
+    "detected": <true|false>,
+    "criterion": "<criterion_id or null>",
+    "explanation": "<one sentence, or null>"
+  }
+}`;
+}
+
+async function analyzeEmail(email, config) {
+  const systemPrompt = buildTriageSystemPrompt(config.categories);
+  const userPrompt = `Triage this email:
+From: ${email.from.name} <${email.from.email}>
+Subject: ${email.subject}
+Snippet: ${email.snippet}
+Body: ${email.body.slice(0, 500)}`;
+
+  const { text, inputTokens, outputTokens } = await callClaude({
+    apiKey: config.anthropicApiKey,
+    systemPrompt,
+    userPrompt,
+  });
+
+  let parsed;
+  try {
+    const clean = text.replace(/```json|```/g, '').trim();
+    parsed = JSON.parse(clean);
+  } catch {
+    parsed = {
+      category: 'admin',
+      summary: 'Could not parse AI response',
+      suggestedAction: 'review',
+      priority: 'low',
+      eb1aSignal: { detected: false, criterion: null, explanation: null },
+    };
+  }
+
+  const cost = inputTokens * COST_INPUT_PER_TOKEN + outputTokens * COST_OUTPUT_PER_TOKEN;
+  return { ...parsed, inputTokens, outputTokens, cost };
+}
+
+async function draftReply(email, instruction, config) {
+  const systemPrompt = `You are drafting a professional email reply for Avitesh Kesharwani. Write only the reply body — no subject line, no "Here is a draft" preamble. Keep it concise and natural. Match the tone of the original email (formal if formal, casual if casual). Sign off as "Avitesh".`;
+  const userPrompt = `Draft a reply to this email.
+Original sender: ${email.from.name} <${email.from.email}>
+Original subject: ${email.subject}
+Original body: ${email.body}
+${instruction ? `\nUser instruction: ${instruction}` : ''}`;
+
+  const { text, inputTokens, outputTokens } = await callClaude({
+    apiKey: config.anthropicApiKey,
+    systemPrompt,
+    userPrompt,
+  });
+  const cost = inputTokens * COST_INPUT_PER_TOKEN + outputTokens * COST_OUTPUT_PER_TOKEN;
+  return { text: text.trim(), inputTokens, outputTokens, cost };
+}
+
+/* ============================================================
+   ICONS
+   ============================================================ */
+
+const Icon = ({ name, size = 14 }) => {
+  const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  switch (name) {
+    case 'inbox': return <svg {...common}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>;
+    case 'activity': return <svg {...common}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
+    case 'settings': return <svg {...common}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
+    case 'refresh': return <svg {...common}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
+    case 'plus': return <svg {...common}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+    case 'archive': return <svg {...common}><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>;
+    case 'trash': return <svg {...common}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>;
+    case 'reply': return <svg {...common}><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>;
+    case 'forward': return <svg {...common}><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>;
+    case 'star': return <svg {...common}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+    case 'sparkles': return <svg {...common}><path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5z"/><path d="M5 17l.8 1.7L7.5 20l-1.7.8L5 22.5l-.8-1.7L2.5 20l1.7-.8z"/><path d="M19 14l.6 1.3L21 16l-1.4.6L19 18l-.6-1.3L17 16l1.4-.6z"/></svg>;
+    case 'x': return <svg {...common}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+    case 'chevron-left': return <svg {...common}><polyline points="15 18 9 12 15 6"/></svg>;
+    case 'check': return <svg {...common}><polyline points="20 6 9 17 4 12"/></svg>;
+    case 'download': return <svg {...common}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+    case 'send': return <svg {...common}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
+    case 'target': return <svg {...common}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
+    case 'alert': return <svg {...common}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+    case 'lock': return <svg {...common}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+    case 'menu': return <svg {...common}><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+    default: return null;
+  }
+};
+
+/* ============================================================
+   TOAST SYSTEM
+   ============================================================ */
+
+const ToastContext = React.createContext(null);
+function useToast() { return React.useContext(ToastContext); }
+
+function ToastProvider({ children }) {
+  const [toasts, setToasts] = useState([]);
+  const push = useCallback((msg, type = 'info', ms = 3500) => {
+    const id = randomId();
+    setToasts(t => [...t, { id, msg, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), ms);
+  }, []);
+  return (
+    <ToastContext.Provider value={push}>
+      {children}
+      <div className="toast-stack">
+        {toasts.map(t => <div key={t.id} className={`toast ${t.type}`}>{t.msg}</div>)}
+      </div>
+    </ToastContext.Provider>
+  );
+}
+
+/* ============================================================
+   ONBOARDING
+   ============================================================ */
+
+function Onboarding({ config, onComplete }) {
+  const [step, setStep] = useState(0);
+  const [draft, setDraft] = useState({ ...config });
+  const toast = useToast();
+
+  const steps = 5;
+
+  const saveAndNext = () => {
+    saveConfig(draft);
+    if (step === steps - 1) {
+      const finalConfig = { ...draft, onboardingComplete: true };
+      saveConfig(finalConfig);
+      onComplete(finalConfig);
+    } else {
+      setStep(s => s + 1);
+    }
+  };
+
+  const content = [
+    (<>
+      <div className="onboard-step">Step 01 — Welcome</div>
+      <h1>Your inboxes,<br />one command center.</h1>
+      <p>InboxOS unifies up to ten Gmail accounts into a single interface. It uses Google's Gmail API for mail and Anthropic's Claude API for optional AI triage.</p>
+      <p className="muted">Everything runs in your browser. No server, no third-party database. Tokens and settings live in this device's localStorage.</p>
+    </>),
+    (<>
+      <div className="onboard-step">Step 02 — Google Cloud setup</div>
+      <h1>Connect Gmail<br />with your own credentials.</h1>
+      <p>To read and send email with your Gmail accounts, InboxOS needs an OAuth 2.0 Client ID from a Google Cloud project you control. One-time setup, about 5 minutes:</p>
+      <ol>
+        <li>Go to <code>console.cloud.google.com</code> and create a project</li>
+        <li>Under APIs & Services, enable <code>Gmail API</code></li>
+        <li>Create OAuth credentials of type <strong>Web application</strong></li>
+        <li>Add this URL as an authorized redirect URI: <code>{window.location.origin + window.location.pathname}</code></li>
+        <li>Copy the Client ID on the next step</li>
+      </ol>
+    </>),
+    (<>
+      <div className="onboard-step">Step 03 — Credentials</div>
+      <h1>Enter your<br />API keys.</h1>
+      <div className="form-row">
+        <label className="form-label">Google OAuth Client ID</label>
+        <input className="input mono" placeholder="xxxxx.apps.googleusercontent.com"
+          value={draft.googleClientId}
+          onChange={e => setDraft({ ...draft, googleClientId: e.target.value })} />
+        <div className="form-help">Required for Gmail access. From the Web Application credential you just created.</div>
+      </div>
+      <div className="form-row">
+        <label className="form-label">Anthropic API key (optional)</label>
+        <input className="input mono" type="password" placeholder="sk-ant-..."
+          value={draft.anthropicApiKey}
+          onChange={e => setDraft({ ...draft, anthropicApiKey: e.target.value })} />
+        <div className="form-help">Required only for AI triage and reply drafting. Find yours at console.anthropic.com.</div>
+      </div>
+    </>),
+    (<>
+      <div className="onboard-step">Step 04 — Operating mode</div>
+      <h1>How should<br />AI behave?</h1>
+      <p>Two modes. Switch anytime from the top bar.</p>
+      <div style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
+        <button className="btn lg" style={{
+          justifyContent: 'flex-start', textAlign: 'left', padding: 16, height: 'auto', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
+          borderColor: draft.defaultMode === 'b' ? 'var(--accent)' : 'var(--line)', background: draft.defaultMode === 'b' ? 'var(--accent-soft)' : 'var(--bg-2)',
+        }} onClick={() => setDraft({ ...draft, defaultMode: 'b', currentMode: 'b' })}>
+          <div className="hstack" style={{ gap: 10 }}>
+            <div className="mode-dot" style={{ background: 'var(--accent)', width: 8, height: 8 }}></div>
+            <strong style={{ color: 'var(--ink-0)' }}>Mode B — Automatic scan</strong>
+            <span className="pill">~$4–6/mo</span>
+          </div>
+          <span style={{ color: 'var(--ink-2)', fontSize: 12, fontWeight: 400, whiteSpace: 'normal' }}>Every new email triaged automatically. Categories, summaries, and EB-1A signals ready when you open the app.</span>
+        </button>
+        <button className="btn lg" style={{
+          justifyContent: 'flex-start', textAlign: 'left', padding: 16, height: 'auto', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
+          borderColor: draft.defaultMode === 'c' ? 'var(--info)' : 'var(--line)', background: draft.defaultMode === 'c' ? 'rgba(168, 196, 220, 0.22)' : 'var(--bg-2)',
+        }} onClick={() => setDraft({ ...draft, defaultMode: 'c', currentMode: 'c' })}>
+          <div className="hstack" style={{ gap: 10 }}>
+            <div className="mode-dot" style={{ background: 'var(--info)', width: 8, height: 8 }}></div>
+            <strong style={{ color: 'var(--ink-0)' }}>Mode C — On-demand</strong>
+            <span className="pill">~$0/mo</span>
+          </div>
+          <span style={{ color: 'var(--ink-2)', fontSize: 12, fontWeight: 400, whiteSpace: 'normal' }}>AI only runs when you click "Analyze with AI" on a specific email. Maximum cost control.</span>
+        </button>
+      </div>
+      <div className="form-row">
+        <label className="form-label">Monthly budget cap (USD)</label>
+        <input className="input mono" type="number" step="0.5" min="0"
+          value={draft.budgetCapMonthly}
+          onChange={e => setDraft({ ...draft, budgetCapMonthly: parseFloat(e.target.value) || 0 })} />
+        <div className="form-help">Mode B auto-pauses at 100%. Mode C confirms before each call past the cap.</div>
+      </div>
+    </>),
+    (<>
+      <div className="onboard-step">Step 05 — Ready</div>
+      <h1>You're set.</h1>
+      <p>Configuration saved. On the next screen, click <strong>Add account</strong> in the sidebar to connect your first Gmail account. You can add up to ten.</p>
+      <p className="muted">Categories, evidence, and usage data are all stored on this device. Export them anytime from Settings.</p>
+    </>),
+  ];
+
+  return (
+    <div className="onboard">
+      <div className="onboard-card">
+        {content[step]}
+        <div className="onboard-footer">
+          {step > 0 && <button className="btn" onClick={() => setStep(s => s - 1)}>Back</button>}
+          <button className="btn primary" style={{ marginLeft: step > 0 ? 0 : 'auto' }} onClick={saveAndNext}>
+            {step === steps - 1 ? 'Open InboxOS' : 'Continue'}
+          </button>
+          <div className="onboard-progress">
+            {Array.from({ length: steps }).map((_, i) => (
+              <div key={i} className={`onboard-dot ${i === step ? 'active' : i < step ? 'done' : ''}`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   ACCOUNTS SIDEBAR
+   ============================================================ */
+
+function AccountsList({ accounts, selectedAccountId, setSelectedAccountId, onAddAccount, emailCountByAccount }) {
+  return (
+    <div className="side-section">
+      <div className="side-label">
+        Accounts
+        <span className="count">{accounts.length}/10</span>
+      </div>
+      <div
+        className={`account-item ${selectedAccountId === 'all' ? 'active' : ''}`}
+        onClick={() => setSelectedAccountId('all')}
+      >
+        <div className="account-dot" style={{ background: 'var(--ink-0)' }}></div>
+        <span>All inboxes</span>
+        <span className="count-badge">{Object.values(emailCountByAccount).reduce((a, b) => a + b, 0)}</span>
+      </div>
+      {accounts.map(a => (
+        <div
+          key={a.id}
+          className={`account-item ${selectedAccountId === a.id ? 'active' : ''} ${a.status === 'needs_reconnect' ? 'warning' : ''}`}
+          onClick={() => setSelectedAccountId(a.id)}
+          title={a.email}
+        >
+          <div className="account-dot" style={{ background: a.color }}></div>
+          <span className="truncate" style={{ flex: 1 }}>{a.label}</span>
+          {a.status === 'needs_reconnect'
+            ? <span className="count-badge" style={{ color: 'var(--warn-ink)' }}>!</span>
+            : <span className="count-badge">{emailCountByAccount[a.id] || 0}</span>}
+        </div>
+      ))}
+      {accounts.length < 10 && (
+        <button className="side-btn" onClick={onAddAccount}>
+          <Icon name="plus" size={12} /> Add account
+        </button>
+      )}
+    </div>
+  );
+}
+
+function CategoryList({ categories, selectedCategoryId, setSelectedCategoryId, emailCountByCategory }) {
+  return (
+    <div className="side-section">
+      <div className="side-label">Categories</div>
+      <div
+        className={`cat-item ${selectedCategoryId === 'all' ? 'active' : ''}`}
+        onClick={() => setSelectedCategoryId('all')}
+      >
+        <div className="cat-swatch" style={{ background: 'var(--ink-1)' }}></div>
+        <span className="cat-label">All</span>
+      </div>
+      {categories.map(c => (
+        <div
+          key={c.id}
+          className={`cat-item ${selectedCategoryId === c.id ? 'active' : ''}`}
+          onClick={() => setSelectedCategoryId(c.id)}
+        >
+          <div className="cat-swatch" style={{ background: c.color }}></div>
+          <span className="cat-label">{c.label}</span>
+          <span className="cat-count">{emailCountByCategory[c.id] || 0}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EB1ARadar({ emails, analyses, onOpenEvidence, onSelectEmail }) {
+  const signals = useMemo(() => {
+    const out = [];
+    for (const email of emails) {
+      const a = analyses[email.threadId];
+      if (a?.eb1aSignal?.detected) {
+        out.push({ email, analysis: a });
+      }
+    }
+    out.sort((a, b) => (CRITERION_RANK[a.analysis.eb1aSignal.criterion] || 99) - (CRITERION_RANK[b.analysis.eb1aSignal.criterion] || 99));
+    return out;
+  }, [emails, analyses]);
+
+  return (
+    <div className="side-section">
+      <div className="side-label">
+        <span style={{ color: 'var(--cat-eb1a)' }}>EB-1A Radar</span>
+        <span className="count">{signals.length}</span>
+      </div>
+      {signals.slice(0, 5).map(s => (
+        <div key={s.email.threadId} className="radar-item" onClick={() => onSelectEmail(s.email)}>
+          <div className="radar-criterion">{CRITERION_LABELS[s.analysis.eb1aSignal.criterion] || s.analysis.eb1aSignal.criterion}</div>
+          <div className="radar-subject">{s.email.subject}</div>
+          <div className="radar-sender">{s.email.from.name}</div>
+        </div>
+      ))}
+      {signals.length === 0 && (
+        <div style={{ padding: '8px 10px', fontSize: 11.5, color: 'var(--ink-3)', lineHeight: 1.5, fontStyle: 'italic' }}>
+          No signals detected yet. Analyze emails to populate.
+        </div>
+      )}
+      <button className="side-btn" onClick={onOpenEvidence} style={{ marginTop: 10 }}>
+        Evidence register
+      </button>
+    </div>
+  );
+}
+
+/* ============================================================
+   EMAIL LIST
+   ============================================================ */
+
+function EmailList({ emails, selectedThreadId, setSelectedThreadId, accounts, analyses, categories }) {
+  const accountMap = useMemo(() => Object.fromEntries(accounts.map(a => [a.id, a])), [accounts]);
+  const categoryMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
+
+  if (emails.length === 0) {
+    return (
+      <div className="empty">
+        <div className="empty-icon">∅</div>
+        <div className="empty-title">No mail here</div>
+        <div className="empty-text">When messages arrive in the inbox — or when filters match — they'll show up in this list.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="email-list">
+      {emails.map(e => {
+        const account = accountMap[e.receivingAccountId];
+        const analysis = analyses[e.threadId];
+        const cat = analysis && categoryMap[analysis.category];
+        return (
+          <div
+            key={e.threadId}
+            className={`email-row ${selectedThreadId === e.threadId ? 'selected' : ''} ${e.isUnread ? 'unread' : ''}`}
+            onClick={() => setSelectedThreadId(e.threadId)}
+          >
+            <div className="email-account-bar" style={{ background: account?.color || 'var(--line)' }}></div>
+            <div className={`email-priority ${analysis?.priority || ''}`}></div>
+            <div className="email-content">
+              <div className="email-meta-line">
+                <span className="email-sender">{e.from.name}</span>
+                <span className="email-account-pill">{account?.label || ''}</span>
+              </div>
+              <div className="email-subject">{e.subject}</div>
+              <div className="email-snippet">{e.snippet}</div>
+              {analysis && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                  {cat && (
+                    <span className="email-ai-tag">
+                      <span className="email-cat-dot" style={{ background: cat.color }}></span>
+                      {cat.label}
+                    </span>
+                  )}
+                  {analysis.eb1aSignal?.detected && (
+                    <span className="email-ai-tag eb1a">
+                      <Icon name="target" size={9} />
+                      EB-1A · {CRITERION_LABELS[analysis.eb1aSignal.criterion] || 'signal'}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="email-time">{formatTime(e.date)}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ============================================================
+   DETAIL PANEL
+   ============================================================ */
+
+function DetailPanel({ email, accounts, analysis, config, onAnalyze, onAnalyzing, analyzing, onReply, onArchive, onTrash, onLabelEb1aEvidence }) {
+  if (!email) {
+    return (
+      <div className="empty">
+        <div className="empty-icon">✉</div>
+        <div className="empty-title">Nothing selected</div>
+        <div className="empty-text">Pick a thread from the list. Details, AI triage, and actions appear here.</div>
+      </div>
+    );
+  }
+
+  const account = accounts.find(a => a.id === email.receivingAccountId);
+
+  return (
+    <>
+      <div className="detail-scroll">
+        <div className="detail-header">
+          <div className="detail-subject">{email.subject}</div>
+          <div className="detail-meta-row">
+            <span className="detail-from">{email.from.name}</span>
+            <span>&lt;{email.from.email}&gt;</span>
+          </div>
+          <div className="detail-meta-row">
+            <span>{new Date(email.date).toLocaleString()}</span>
+          </div>
+          <div className="detail-routing">
+            <div className="account-dot" style={{ background: account?.color || 'var(--ink-3)' }}></div>
+            <span className="routing-label">Received on</span>
+            <span style={{ color: 'var(--ink-0)', fontWeight: 500 }}>{account?.label}</span>
+            <span style={{ color: 'var(--ink-2)', marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontSize: 10.5 }}>{email.receivingAccountEmail}</span>
+          </div>
+        </div>
+
+        {analysis ? (
+          <div className="ai-panel">
+            <div className="ai-header">
+              <Icon name="sparkles" size={11} />
+              AI Triage · cached
+            </div>
+            <div className="ai-summary">{analysis.summary}</div>
+            <div className="ai-stat-grid">
+              <div className="ai-stat">
+                <div className="ai-stat-label">Category</div>
+                <div className="ai-stat-value">{analysis.category}</div>
+              </div>
+              <div className="ai-stat">
+                <div className="ai-stat-label">Priority</div>
+                <div className="ai-stat-value" style={{ color: analysis.priority === 'high' ? 'var(--danger-ink)' : analysis.priority === 'medium' ? 'var(--warn-ink)' : 'var(--ink-1)' }}>
+                  {analysis.priority}
+                </div>
+              </div>
+              <div className="ai-stat" style={{ gridColumn: '1 / -1' }}>
+                <div className="ai-stat-label">Suggested action</div>
+                <div className="ai-stat-value">{analysis.suggestedAction}</div>
+              </div>
+            </div>
+            {analysis.eb1aSignal?.detected && (
+              <div className="eb1a-callout">
+                <div className="eb1a-title">
+                  <Icon name="target" size={10} />
+                  EB-1A signal · {CRITERION_LABELS[analysis.eb1aSignal.criterion] || analysis.eb1aSignal.criterion}
+                </div>
+                <div className="eb1a-explanation">{analysis.eb1aSignal.explanation}</div>
+                <button className="btn sm" onClick={() => onLabelEb1aEvidence(email, analysis)}>
+                  <Icon name="star" size={11} /> Save as evidence
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="ai-panel placeholder">
+            <div className="ai-header" style={{ color: 'var(--ink-3)' }}>
+              <Icon name="sparkles" size={11} />
+              AI Triage · not yet analyzed
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 10 }}>
+              {config.currentMode === 'b'
+                ? 'Mode B is enabled. This email will be auto-triaged on next scan, or analyze now.'
+                : 'Mode C (on-demand). Click to analyze this email.'}
+            </div>
+            <button className="btn primary sm" disabled={analyzing || !config.anthropicApiKey} onClick={() => onAnalyze(email)}>
+              {analyzing ? <><span className="spinner"></span> Analyzing...</> : <><Icon name="sparkles" size={11} /> Analyze with AI</>}
+            </button>
+            {!config.anthropicApiKey && <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 6 }}>Set your Anthropic API key in Settings to enable.</div>}
+          </div>
+        )}
+
+        <div className="detail-body">{email.body || email.snippet}</div>
+      </div>
+
+      <div className="detail-actions">
+        <button className="btn primary sm" onClick={() => onReply(email)}>
+          <Icon name="reply" size={12} /> Reply
+        </button>
+        <button className="btn sm" onClick={() => onArchive(email)}>
+          <Icon name="archive" size={12} /> Archive
+        </button>
+        <button className="btn sm danger" onClick={() => onTrash(email)}>
+          <Icon name="trash" size={12} /> Delete
+        </button>
+      </div>
+    </>
+  );
+}
+
+/* ============================================================
+   REPLY COMPOSER
+   ============================================================ */
+
+function ReplyComposer({ email, accounts, config, onClose, onSent, onError }) {
+  const account = accounts.find(a => a.id === email.receivingAccountId);
+  const [to, setTo] = useState(email.from.email);
+  const [subject, setSubject] = useState(email.subject.startsWith('Re:') ? email.subject : 'Re: ' + email.subject);
+  const [body, setBody] = useState('');
+  const [drafting, setDrafting] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [aiInstruction, setAiInstruction] = useState('');
+  const toast = useToast();
+
+  async function handleDraft() {
+    if (!config.anthropicApiKey) { toast('Set your Anthropic API key first', 'error'); return; }
+    setDrafting(true);
+    try {
+      const res = await draftReply(email, aiInstruction, config);
+      setBody(res.text);
+      appendUsage({
+        timestamp: Date.now(),
+        accountId: email.receivingAccountId,
+        threadId: email.threadId,
+        callType: 'reply_draft',
+        inputTokens: res.inputTokens,
+        outputTokens: res.outputTokens,
+        cost: res.cost,
+        mode: config.currentMode,
+      });
+      toast('Draft generated', 'info');
+    } catch (e) { toast('Draft failed: ' + e.message, 'error'); }
+    finally { setDrafting(false); }
+  }
+
+  async function handleSend() {
+    if (!body.trim()) { toast('Empty message', 'warn'); return; }
+    setSending(true);
+    try {
+      const quoted = `\n\nOn ${new Date(email.date).toLocaleString()}, ${email.from.name} <${email.from.email}> wrote:\n${email.body.split('\n').map(l => '> ' + l).join('\n')}`;
+      await sendReply(account, config.googleClientId, (acc) => saveAccount(acc), {
+        to, subject,
+        body: body + quoted,
+        threadId: email.threadId,
+        inReplyTo: email.messageIdHeader,
+        references: email.references ? email.references + ' ' + email.messageIdHeader : email.messageIdHeader,
+      });
+      toast('Reply sent from ' + account.label, 'info');
+      onSent();
+    } catch (e) {
+      toast('Send failed: ' + e.message, 'error');
+      onError && onError(e);
+    } finally { setSending(false); }
+  }
+
+  return (
+    <div className="composer-overlay" onClick={(e) => { if (e.target.classList.contains('composer-overlay')) onClose(); }}>
+      <div className="composer">
+        <div className="composer-head">
+          <h3>Reply</h3>
+          <span className="lock-pill"><Icon name="lock" size={9} /> Routed</span>
+          <button className="icon-btn" onClick={onClose} style={{ marginLeft: 'auto' }}><Icon name="x" size={14} /></button>
+        </div>
+        <div className="composer-fields">
+          <div className="composer-field">
+            <label>From</label>
+            <div className="field-locked">
+              <div className="account-dot" style={{ background: account?.color }}></div>
+              <span className="field-static">{account?.email}</span>
+              <span className="lock-pill" style={{ marginLeft: 8 }}><Icon name="lock" size={9} /> Locked to receiving account</span>
+            </div>
+          </div>
+          <div className="composer-field">
+            <label>To</label>
+            <input value={to} onChange={e => setTo(e.target.value)} />
+          </div>
+          <div className="composer-field">
+            <label>Subject</label>
+            <input value={subject} onChange={e => setSubject(e.target.value)} />
+          </div>
+        </div>
+        <div className="composer-body">
+          <textarea
+            className="composer-textarea"
+            placeholder="Write your reply..."
+            value={body}
+            onChange={e => setBody(e.target.value)}
+          />
+          <div className="composer-quote">
+            On {new Date(email.date).toLocaleString()}, {email.from.name} wrote:{'\n'}
+            {(email.body || email.snippet).split('\n').slice(0, 6).map((l, i) => <div key={i}>&gt; {l}</div>)}
+          </div>
+        </div>
+        <div className="composer-foot">
+          <input
+            className="input"
+            style={{ maxWidth: 280, height: 32 }}
+            placeholder="AI draft instruction (optional)"
+            value={aiInstruction}
+            onChange={e => setAiInstruction(e.target.value)}
+          />
+          <button className="btn" disabled={drafting || !config.anthropicApiKey} onClick={handleDraft}>
+            {drafting ? <><span className="spinner"></span> Drafting...</> : <><Icon name="sparkles" size={12} /> AI draft</>}
+          </button>
+          <button className="btn primary" style={{ marginLeft: 'auto' }} disabled={sending} onClick={handleSend}>
+            {sending ? <><span className="spinner"></span> Sending...</> : <><Icon name="send" size={12} /> Send</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   USAGE DASHBOARD
+   ============================================================ */
+
+function usageFilter(records, period) {
+  const now = new Date();
+  let start;
+  if (period === 'day') {
+    start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  } else if (period === 'week') {
+    const day = now.getDay();
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (day === 0 ? 6 : day - 1));
+    start = monday.getTime();
+  } else {
+    start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  }
+  return records.filter(r => r.timestamp >= start);
+}
+
+function summarizeUsage(records) {
+  const cost = records.reduce((s, r) => s + r.cost, 0);
+  const tokens = records.reduce((s, r) => s + r.inputTokens + r.outputTokens, 0);
+  const analyzed = new Set(records.filter(r => r.callType === 'auto_scan' || r.callType === 'on_demand_analysis').map(r => r.threadId)).size;
+  const replies = records.filter(r => r.callType === 'reply_draft').length;
+  const calls = records.length;
+  return {
+    cost, tokens, analyzed, replies, calls,
+    avgCostPerEmail: analyzed ? cost / analyzed : 0,
+  };
+}
+
+function UsageDashboard({ config, setConfig, accounts }) {
+  const [usageLog, setUsageLog] = useState(loadUsageLog());
+  const [period, setPeriod] = useState('day');
+  const chartRef = useRef(null);
+  const accountChartRef = useRef(null);
+  const chartInstance = useRef(null);
+  const accountChartInstance = useRef(null);
+  const toast = useToast();
+
+  const records = usageFilter(usageLog, period);
+  const summary = summarizeUsage(records);
+  const budgetPct = config.budgetCapMonthly > 0 ? summarizeUsage(usageFilter(usageLog, 'month')).cost / config.budgetCapMonthly : 0;
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    const now = new Date();
+    let labels = [], data = [];
+
+    if (period === 'day') {
+      labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+      data = Array(24).fill(0);
+      for (const r of records) {
+        const h = new Date(r.timestamp).getHours();
+        data[h] += r.cost;
+      }
+    } else if (period === 'week') {
+      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      labels = dayNames;
+      data = Array(7).fill(0);
+      for (const r of records) {
+        const d = new Date(r.timestamp).getDay();
+        const idx = d === 0 ? 6 : d - 1;
+        data[idx] += r.cost;
+      }
+    } else {
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      labels = Array.from({ length: daysInMonth }, (_, i) => String(i + 1));
+      data = Array(daysInMonth).fill(0);
+      for (const r of records) {
+        const d = new Date(r.timestamp).getDate();
+        data[d - 1] += r.cost;
+      }
+    }
+
+    if (chartInstance.current) chartInstance.current.destroy();
+    chartInstance.current = new Chart(chartRef.current, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: 'rgba(184, 212, 168, 0.55)',
+          borderColor: '#94b088',
+          borderWidth: 1,
+          borderRadius: 3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => '$' + ctx.parsed.y.toFixed(4) } } },
+        scales: {
+          x: { ticks: { color: '#8a8196', font: { size: 10, family: 'IBM Plex Mono' } }, grid: { display: false } },
+          y: { ticks: { color: '#8a8196', font: { size: 10, family: 'IBM Plex Mono' }, callback: v => '$' + v.toFixed(3) }, grid: { color: '#e8dfd3' } },
+        },
+      },
+    });
+
+    return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+  }, [period, usageLog]);
+
+  useEffect(() => {
+    if (!accountChartRef.current) return;
+    const monthly = usageFilter(usageLog, 'month');
+    const byAccount = {};
+    for (const r of monthly) {
+      byAccount[r.accountId] = (byAccount[r.accountId] || 0) + r.cost;
+    }
+    const labels = accounts.map(a => a.label);
+    const data = accounts.map(a => byAccount[a.id] || 0);
+    const colors = accounts.map(a => a.color);
+
+    if (accountChartInstance.current) accountChartInstance.current.destroy();
+    if (data.every(v => v === 0)) return;
+
+    accountChartInstance.current = new Chart(accountChartRef.current, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 3 }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { color: '#5a5166', font: { size: 11, family: 'Geist' }, boxWidth: 10 } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: $${ctx.parsed.toFixed(4)}` } },
+        },
+        cutout: '65%',
+      },
+    });
+
+    return () => { if (accountChartInstance.current) accountChartInstance.current.destroy(); };
+  }, [usageLog, accounts]);
+
+  const budgetClass = budgetPct >= 1 ? 'danger' : budgetPct >= 0.8 ? 'warn' : '';
+
+  function exportCSV() {
+    const rows = [['timestamp', 'accountId', 'threadId', 'callType', 'inputTokens', 'outputTokens', 'cost', 'mode']];
+    for (const r of usageLog) {
+      rows.push([new Date(r.timestamp).toISOString(), r.accountId, r.threadId, r.callType, r.inputTokens, r.outputTokens, r.cost.toFixed(6), r.mode]);
+    }
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'inboxos-usage.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function resetPeriod() {
+    if (!confirm('Reset all usage logs? This cannot be undone.')) return;
+    storage.set('inboxos_usage_log', []);
+    setUsageLog([]);
+    toast('Usage logs cleared', 'info');
+  }
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <div className="page-title">Usage & cost</div>
+          <div className="page-subtitle" style={{ marginTop: 8 }}>
+            Every AI call logged. Three windows, one budget. Track which accounts generate spend and pause before you overshoot.
+          </div>
+        </div>
+      </div>
+
+      <div className="tab-row">
+        {['day', 'week', 'month'].map(p => (
+          <button key={p} className={`tab ${period === p ? 'active' : ''}`} onClick={() => setPeriod(p)}>
+            {p === 'day' ? 'Today' : p === 'week' ? 'This week' : 'This month'}
+          </button>
+        ))}
+      </div>
+
+      <div className="stat-grid">
+        <div className="stat-card">
+          <div className="stat-label">Total cost</div>
+          <div className="stat-value positive">${summary.cost.toFixed(4)}</div>
+          <div className="stat-sub">USD</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Tokens</div>
+          <div className="stat-value">{summary.tokens.toLocaleString()}</div>
+          <div className="stat-sub">input + output</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Emails analyzed</div>
+          <div className="stat-value">{summary.analyzed}</div>
+          <div className="stat-sub">unique threads</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Replies drafted</div>
+          <div className="stat-value">{summary.replies}</div>
+          <div className="stat-sub">AI generations</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Calls made</div>
+          <div className="stat-value">{summary.calls}</div>
+          <div className="stat-sub">total API calls</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Avg cost / email</div>
+          <div className="stat-value">${summary.avgCostPerEmail.toFixed(4)}</div>
+          <div className="stat-sub">per triage</div>
+        </div>
+      </div>
+
+      <div className="chart-card">
+        <h3>{period === 'day' ? 'Hourly spend today' : period === 'week' ? 'Daily spend this week' : 'Daily spend this month'}</h3>
+        <div className="chart-container"><canvas ref={chartRef}></canvas></div>
+      </div>
+
+      <div className="budget-row">
+        <div className="budget-card">
+          <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 20, marginBottom: 4, fontWeight: 400 }}>Monthly budget</h3>
+          <div className="stat-sub" style={{ marginTop: 0, marginBottom: 8 }}>Mode B pauses at 100%. Mode C confirms before charging past the cap.</div>
+          <div className="budget-amounts">
+            <span>${summarizeUsage(usageFilter(usageLog, 'month')).cost.toFixed(4)} used</span>
+            <span>${config.budgetCapMonthly.toFixed(2)} cap</span>
+          </div>
+          <div className="budget-bar">
+            <div className={`budget-fill ${budgetClass}`} style={{ width: Math.min(100, budgetPct * 100) + '%' }}></div>
+          </div>
+          <div className="hstack" style={{ marginTop: 12 }}>
+            <input
+              className="input mono" type="number" step="0.5" min="0" style={{ maxWidth: 120 }}
+              value={config.budgetCapMonthly}
+              onChange={e => { const c = { ...config, budgetCapMonthly: parseFloat(e.target.value) || 0 }; setConfig(c); saveConfig(c); }}
+            />
+            <button className="btn sm" onClick={exportCSV}><Icon name="download" size={11} /> Export log</button>
+            <button className="btn sm danger" onClick={resetPeriod}>Reset logs</button>
+          </div>
+          {budgetPct >= 0.8 && budgetPct < 1 && (
+            <div style={{ marginTop: 10, color: 'var(--warn-ink)', fontSize: 11.5 }}>⚠ Approaching cap — {Math.round(budgetPct * 100)}% used</div>
+          )}
+          {budgetPct >= 1 && (
+            <div style={{ marginTop: 10, color: 'var(--danger-ink)', fontSize: 11.5 }}>⚠ Cap reached. Mode B paused. Mode C will confirm each call.</div>
+          )}
+        </div>
+
+        <div className="budget-card">
+          <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 20, marginBottom: 4, fontWeight: 400 }}>By account (this month)</h3>
+          <div className="stat-sub" style={{ marginTop: 0, marginBottom: 14 }}>Where spend is going across your connected accounts.</div>
+          <div className="chart-container" style={{ height: 180 }}><canvas ref={accountChartRef}></canvas></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SETTINGS PAGE
+   ============================================================ */
+
+function SettingsPage({ config, setConfig, accounts, setAccounts, onAddAccount, toast }) {
+  const [localConfig, setLocalConfig] = useState(config);
+  const [savedFlash, setSavedFlash] = useState(false);
+  const savedTimer = useRef(null);
+
+  function flashSaved() {
+    setSavedFlash(true);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSavedFlash(false), 1400);
+  }
+
+  function persist(patch) {
+    const next = { ...localConfig, ...patch };
+    setLocalConfig(next);
+    setConfig(next);
+    saveConfig(next);
+    flashSaved();
+  }
+
+  function handleRename(account, label) {
+    const next = { ...account, label };
+    saveAccount(next);
+    setAccounts(a => a.map(x => x.id === account.id ? next : x));
+    flashSaved();
+  }
+
+  function handleRemove(account) {
+    if (!confirm(`Remove ${account.email}? You'll need to reconnect to access it again.`)) return;
+    removeAccount(account.id);
+    setAccounts(a => a.filter(x => x.id !== account.id));
+    toast('Account removed', 'info');
+  }
+
+  function exportEvidence() {
+    const evidence = loadEvidence();
+    const rows = [['savedAt', 'accountId', 'subject', 'sender', 'criterion', 'explanation', 'threadId']];
+    for (const e of evidence) {
+      rows.push([new Date(e.savedAt).toISOString(), e.accountId, e.subject, e.sender, e.criterion, e.explanation, e.threadId]);
+    }
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'eb1a-evidence.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function resetAll() {
+    if (!confirm('This will erase ALL data: accounts, tokens, analyses, usage logs, evidence, and settings. Continue?')) return;
+    if (!confirm('Are you sure? This cannot be undone.')) return;
+    for (const k of storage.keys()) {
+      if (k.startsWith('inboxos_')) storage.remove(k);
+    }
+    location.reload();
+  }
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <div className="page-title">Settings</div>
+          <div className="page-subtitle" style={{ marginTop: 8 }}>
+            Credentials, accounts, categories, and exports. Changes save instantly — there's no Save button because every edit is persisted the moment you make it.
+          </div>
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className={`saved-indicator ${savedFlash ? 'flash' : ''}`}>
+            <span className="saved-dot"></span>
+            <span>{savedFlash ? 'Saved' : 'All changes saved'}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h2>Credentials</h2>
+        <div className="settings-body">
+          <div className="form-row">
+            <label className="form-label">Google OAuth Client ID</label>
+            <input className="input mono"
+              value={localConfig.googleClientId}
+              onChange={e => persist({ googleClientId: e.target.value })}
+              placeholder="xxxxx.apps.googleusercontent.com" />
+          </div>
+          <div className="form-row">
+            <label className="form-label">Anthropic API key</label>
+            <input className="input mono" type="password"
+              value={localConfig.anthropicApiKey}
+              onChange={e => persist({ anthropicApiKey: e.target.value })}
+              placeholder="sk-ant-..." />
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h2>Accounts</h2>
+        <div className="settings-body">
+          {accounts.length === 0 && <div style={{ color: 'var(--ink-2)', fontSize: 12.5, marginBottom: 12 }}>No accounts yet.</div>}
+          {accounts.map(a => (
+            <div key={a.id} style={{ display: 'grid', gridTemplateColumns: '12px 1fr 1fr auto', gap: 12, alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--bg-2)' }}>
+              <div className="account-dot" style={{ background: a.color }}></div>
+              <input className="input" style={{ height: 30 }} value={a.label} onChange={e => handleRename(a, e.target.value)} />
+              <div style={{ fontSize: 12, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>{a.email}</div>
+              <button className="btn sm danger" onClick={() => handleRemove(a)}>Remove</button>
+            </div>
+          ))}
+          {accounts.length < 10 && (
+            <button className="btn" style={{ marginTop: 14 }} onClick={onAddAccount}>
+              <Icon name="plus" size={12} /> Add account
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h2>Behavior</h2>
+        <div className="settings-body">
+          <div className="form-row">
+            <label className="form-label">Default AI mode</label>
+            <div className="hstack">
+              <button className={`btn ${localConfig.defaultMode === 'b' ? 'primary' : ''}`} onClick={() => persist({ defaultMode: 'b' })}>Mode B — Automatic</button>
+              <button className={`btn ${localConfig.defaultMode === 'c' ? 'primary' : ''}`} onClick={() => persist({ defaultMode: 'c' })}>Mode C — On-demand</button>
+            </div>
+            <div className="form-help">Mode B ~$4–6/month. Mode C ~$0/month. Switch anytime from the top bar.</div>
+          </div>
+          <div className="form-row">
+            <label className="form-label">Monthly budget cap (USD)</label>
+            <input className="input mono" type="number" step="0.5" min="0" style={{ maxWidth: 160 }}
+              value={localConfig.budgetCapMonthly}
+              onChange={e => persist({ budgetCapMonthly: parseFloat(e.target.value) || 0 })} />
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h2>Data</h2>
+        <div className="settings-body">
+          <div className="hstack" style={{ flexWrap: 'wrap' }}>
+            <button className="btn" onClick={exportEvidence}><Icon name="download" size={12} /> Export EB-1A evidence (CSV)</button>
+            <button className="btn danger" onClick={resetAll}>Reset everything</button>
+          </div>
+          <div className="form-help" style={{ marginTop: 10 }}>
+            All data is stored in this browser's localStorage. Nothing is synced to a server. Tokens remain on this device only.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   EVIDENCE MODAL
+   ============================================================ */
+
+function EvidenceModal({ onClose }) {
+  const [evidence, setEvidence] = useState(loadEvidence());
+
+  function remove(idx) {
+    const next = evidence.filter((_, i) => i !== idx);
+    saveEvidence(next);
+    setEvidence(next);
+  }
+
+  function exportCSV() {
+    const rows = [['savedAt', 'subject', 'sender', 'criterion', 'explanation']];
+    for (const e of evidence) rows.push([new Date(e.savedAt).toISOString(), e.subject, e.sender, e.criterion, e.explanation]);
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'eb1a-evidence.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="modal-overlay" onClick={(e) => { if (e.target.classList.contains('modal-overlay')) onClose(); }}>
+      <div className="modal">
+        <div className="modal-head">
+          <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, fontWeight: 400, letterSpacing: '-0.01em' }}>EB-1A evidence register</h3>
+          <span className="pill">{evidence.length} saved</span>
+          <button className="btn sm" style={{ marginLeft: 'auto' }} onClick={exportCSV}><Icon name="download" size={11} /> Export CSV</button>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" size={14} /></button>
+        </div>
+        <div className="modal-body">
+          {evidence.length === 0 ? (
+            <div className="empty" style={{ padding: 40 }}>
+              <div className="empty-icon">◎</div>
+              <div className="empty-title">No evidence saved</div>
+              <div className="empty-text">When the AI detects an EB-1A signal on an email, click "Save as evidence" to add it here.</div>
+            </div>
+          ) : (
+            <table className="evidence-table">
+              <thead>
+                <tr><th>Saved</th><th>Criterion</th><th>Subject</th><th>Sender</th><th>Why it qualifies</th><th></th></tr>
+              </thead>
+              <tbody>
+                {evidence.map((e, i) => (
+                  <tr key={i}>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>{new Date(e.savedAt).toLocaleDateString()}</td>
+                    <td><span className="crit-pill">{CRITERION_LABELS[e.criterion] || e.criterion}</span></td>
+                    <td style={{ color: 'var(--ink-0)', maxWidth: 240 }}>{e.subject}</td>
+                    <td>{e.sender}</td>
+                    <td style={{ color: 'var(--ink-2)', maxWidth: 260, fontSize: 11.5 }}>{e.explanation}</td>
+                    <td><button className="btn sm danger" onClick={() => remove(i)}>Delete</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   MAIN APP
+   ============================================================ */
+
+function App() {
+  const toast = useToast();
+  const [config, setConfig] = useState(loadConfig());
+  const [accounts, setAccounts] = useState(loadAccounts());
+  const [page, setPage] = useState('inbox');
+  const [selectedAccountId, setSelectedAccountId] = useState('all');
+  const [selectedCategoryId, setSelectedCategoryId] = useState('all');
+  const [selectedThreadId, setSelectedThreadId] = useState(null);
+  const [emailsByAccount, setEmailsByAccount] = useState({});
+  const [analyses, setAnalyses] = useState({});
+  const [loading, setLoading] = useState({});
+  const [syncingAll, setSyncingAll] = useState(false);
+  const [analyzingThread, setAnalyzingThread] = useState(null);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerEmail, setComposerEmail] = useState(null);
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+
+  // hydrate analyses from storage
+  useEffect(() => {
+    const next = {};
+    for (const k of storage.keys()) {
+      if (k.startsWith('inboxos_analysis_')) {
+        const a = storage.get(k);
+        if (a) next[a.threadId] = a;
+      }
+    }
+    setAnalyses(next);
+  }, []);
+
+  // flat list of emails across all accounts
+  const allEmails = useMemo(() => {
+    const list = [];
+    for (const accId of Object.keys(emailsByAccount)) {
+      list.push(...(emailsByAccount[accId] || []));
+    }
+    list.sort((a, b) => b.date - a.date);
+    return list;
+  }, [emailsByAccount]);
+
+  // filtered email list
+  const filteredEmails = useMemo(() => {
+    let list = allEmails;
+    if (selectedAccountId !== 'all') list = list.filter(e => e.receivingAccountId === selectedAccountId);
+    if (selectedCategoryId !== 'all') list = list.filter(e => analyses[e.threadId]?.category === selectedCategoryId);
+    return list;
+  }, [allEmails, selectedAccountId, selectedCategoryId, analyses]);
+
+  const selectedEmail = useMemo(
+    () => allEmails.find(e => e.threadId === selectedThreadId) || null,
+    [allEmails, selectedThreadId]
+  );
+
+  const emailCountByAccount = useMemo(() => {
+    const out = {};
+    for (const e of allEmails) out[e.receivingAccountId] = (out[e.receivingAccountId] || 0) + (e.isUnread ? 1 : 0);
+    return out;
+  }, [allEmails]);
+
+  const emailCountByCategory = useMemo(() => {
+    const out = {};
+    for (const e of allEmails) {
+      const cat = analyses[e.threadId]?.category;
+      if (cat) out[cat] = (out[cat] || 0) + 1;
+    }
+    return out;
+  }, [allEmails, analyses]);
+
+  const monthlySpend = useMemo(() => {
+    return summarizeUsage(usageFilter(loadUsageLog(), 'month')).cost;
+  }, [analyses, composerOpen]); // recompute when things change
+
+  const budgetHit = monthlySpend >= config.budgetCapMonthly;
+  const budgetWarn = monthlySpend >= config.budgetCapMonthly * 0.8 && !budgetHit;
+
+  // === Account ops ===
+  async function handleAddAccount() {
+    if (!config.googleClientId) { toast('Set Google Client ID in Settings first', 'error'); setPage('settings'); return; }
+    if (accounts.length >= 10) { toast('10-account limit reached', 'warn'); return; }
+    try {
+      const result = await startOAuthFlow(config.googleClientId);
+      if (accounts.find(a => a.email === result.email)) {
+        toast(`${result.email} already connected`, 'warn');
+        return;
+      }
+      const idx = accounts.length;
+      const newAccount = {
+        id: randomId(),
+        label: DEFAULT_ACCOUNT_LABELS[idx] || `Account ${idx + 1}`,
+        email: result.email,
+        color: DEFAULT_ACCOUNT_COLORS[idx] || '#c8f57a',
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        tokenExpiry: result.tokenExpiry,
+        status: 'active',
+        lastSynced: 0,
+        gmailLabelIds: {},
+        order: idx,
+      };
+      saveAccount(newAccount);
+      setAccounts(a => [...a, newAccount]);
+      toast(`Connected ${result.email}`, 'info');
+      // fetch initial emails
+      fetchAccountEmails(newAccount);
+    } catch (e) {
+      toast('OAuth failed: ' + e.message, 'error');
+    }
+  }
+
+  async function fetchAccountEmails(account) {
+    setLoading(l => ({ ...l, [account.id]: true }));
+    try {
+      const list = await listThreads(account, config.googleClientId, (acc) => {
+        saveAccount(acc);
+        setAccounts(a => a.map(x => x.id === acc.id ? acc : x));
+      });
+      const threadIds = (list.threads || []).map(t => t.id);
+      const emails = [];
+      for (const tid of threadIds.slice(0, 25)) {
+        try {
+          const thread = await getThread(account, config.googleClientId, () => {}, tid);
+          const normalized = normalizeThread(thread, account);
+          if (normalized) emails.push(normalized);
+        } catch (e) { /* skip failed threads */ }
+      }
+      setEmailsByAccount(prev => ({ ...prev, [account.id]: emails }));
+      const updated = { ...account, lastSynced: Date.now() };
+      saveAccount(updated);
+      setAccounts(a => a.map(x => x.id === account.id ? updated : x));
+      // if mode B, auto-analyze
+      if (config.currentMode === 'b' && config.anthropicApiKey && !budgetHit) {
+        autoScanEmails(emails);
+      }
+    } catch (e) {
+      toast(`${account.label}: ${e.message}`, 'error');
+    } finally {
+      setLoading(l => ({ ...l, [account.id]: false }));
+    }
+  }
+
+  async function handleRefreshAll() {
+    if (accounts.length === 0) { toast('No accounts connected', 'warn'); return; }
+    setSyncingAll(true);
+    for (const a of accounts) {
+      if (a.status === 'active') await fetchAccountEmails(a);
+    }
+    setSyncingAll(false);
+  }
+
+  // === Analysis ===
+  async function autoScanEmails(emails) {
+    const toAnalyze = emails.filter(e => !analyses[e.threadId]).slice(0, 25);
+    if (toAnalyze.length === 0) return;
+    const batchSize = 5;
+    for (let i = 0; i < toAnalyze.length; i += batchSize) {
+      // recompute budget
+      const spend = summarizeUsage(usageFilter(loadUsageLog(), 'month')).cost;
+      if (spend >= config.budgetCapMonthly) {
+        toast('Budget cap reached — Mode B paused', 'warn');
+        return;
+      }
+      const batch = toAnalyze.slice(i, i + batchSize);
+      await Promise.all(batch.map(e => runAnalysis(e, 'auto_scan')));
+      if (i + batchSize < toAnalyze.length) await new Promise(r => setTimeout(r, 200));
+    }
+  }
+
+  async function runAnalysis(email, callType = 'on_demand_analysis') {
+    if (!config.anthropicApiKey) return;
+    try {
+      const result = await analyzeEmail(email, config);
+      const record = {
+        threadId: email.threadId,
+        analyzedAt: Date.now(),
+        category: result.category,
+        summary: result.summary,
+        suggestedAction: result.suggestedAction,
+        priority: result.priority,
+        eb1aSignal: result.eb1aSignal,
+        inputTokens: result.inputTokens,
+        outputTokens: result.outputTokens,
+        cost: result.cost,
+      };
+      saveAnalysis(record);
+      setAnalyses(a => ({ ...a, [email.threadId]: record }));
+      appendUsage({
+        timestamp: Date.now(),
+        accountId: email.receivingAccountId,
+        threadId: email.threadId,
+        callType,
+        inputTokens: result.inputTokens,
+        outputTokens: result.outputTokens,
+        cost: result.cost,
+        mode: config.currentMode,
+      });
+    } catch (e) {
+      toast('Analysis failed: ' + e.message, 'error');
+    }
+  }
+
+  async function handleAnalyzeOne(email) {
+    const spend = summarizeUsage(usageFilter(loadUsageLog(), 'month')).cost;
+    if (spend >= config.budgetCapMonthly) {
+      if (!confirm(`You've hit your $${config.budgetCapMonthly} cap. Continue anyway?`)) return;
+    }
+    setAnalyzingThread(email.threadId);
+    await runAnalysis(email, 'on_demand_analysis');
+    setAnalyzingThread(null);
+  }
+
+  // === Email actions ===
+  async function handleReply(email) {
+    setComposerEmail(email);
+    setComposerOpen(true);
+  }
+
+  async function handleArchive(email) {
+    const acc = accounts.find(a => a.id === email.receivingAccountId);
+    if (!acc) return;
+    try {
+      await modifyThread(acc, config.googleClientId, () => {}, email.threadId, [], ['INBOX']);
+      setEmailsByAccount(prev => ({
+        ...prev,
+        [acc.id]: (prev[acc.id] || []).filter(e => e.threadId !== email.threadId),
+      }));
+      if (selectedThreadId === email.threadId) setSelectedThreadId(null);
+      toast('Archived', 'info');
+    } catch (e) { toast('Archive failed: ' + e.message, 'error'); }
+  }
+
+  async function handleTrash(email) {
+    const acc = accounts.find(a => a.id === email.receivingAccountId);
+    if (!acc) return;
+    try {
+      await trashThread(acc, config.googleClientId, () => {}, email.threadId);
+      setEmailsByAccount(prev => ({
+        ...prev,
+        [acc.id]: (prev[acc.id] || []).filter(e => e.threadId !== email.threadId),
+      }));
+      if (selectedThreadId === email.threadId) setSelectedThreadId(null);
+      toast('Moved to trash', 'info');
+    } catch (e) { toast('Trash failed: ' + e.message, 'error'); }
+  }
+
+  function handleSaveEvidence(email, analysis) {
+    const record = {
+      savedAt: Date.now(),
+      threadId: email.threadId,
+      subject: email.subject,
+      sender: `${email.from.name} <${email.from.email}>`,
+      criterion: analysis.eb1aSignal.criterion,
+      explanation: analysis.eb1aSignal.explanation,
+      accountId: email.receivingAccountId,
+    };
+    const list = loadEvidence();
+    if (list.find(e => e.threadId === email.threadId)) {
+      toast('Already in evidence register', 'warn');
+      return;
+    }
+    list.push(record);
+    saveEvidence(list);
+    toast('Saved to evidence register', 'info');
+  }
+
+  // === Mode toggle ===
+  function setMode(m) {
+    const next = { ...config, currentMode: m };
+    setConfig(next);
+    saveConfig(next);
+    toast(`Switched to Mode ${m.toUpperCase()}`, 'info');
+    if (m === 'b' && !budgetHit) {
+      // rescan unanalyzed
+      autoScanEmails(allEmails);
+    }
+  }
+
+  // onboarding
+  if (!config.onboardingComplete) {
+    return <Onboarding config={config} onComplete={(c) => { setConfig(c); }} />;
+  }
+
+  const mainLayoutClass = page === 'inbox' ? 'main' : 'main single';
+
+  return (
+    <>
+      <div className="topbar">
+        <div className="brand">
+          <div className="brand-logo">I</div>
+          <div className="brand-name">Inbox<em>OS</em></div>
+        </div>
+        <div className="top-nav">
+          <button className={`top-nav-item ${page === 'inbox' ? 'active' : ''}`} onClick={() => setPage('inbox')}>
+            <Icon name="inbox" size={12} /> &nbsp;Inbox
+          </button>
+          <button className={`top-nav-item ${page === 'usage' ? 'active' : ''}`} onClick={() => setPage('usage')}>
+            <Icon name="activity" size={12} /> &nbsp;Usage
+          </button>
+          <button className={`top-nav-item ${page === 'settings' ? 'active' : ''}`} onClick={() => setPage('settings')}>
+            <Icon name="settings" size={12} /> &nbsp;Settings
+          </button>
+        </div>
+        <div className="top-spacer"></div>
+        <div className="mode-toggle" title="AI mode">
+          <button className={`mode-c ${config.currentMode === 'c' ? 'active' : ''}`} onClick={() => setMode('c')}>
+            <span className="mode-dot"></span> Mode C · on-demand
+          </button>
+          <button className={`mode-b ${config.currentMode === 'b' ? 'active' : ''}`} onClick={() => setMode('b')}>
+            <span className="mode-dot"></span> Mode B · auto
+          </button>
+        </div>
+        {page === 'inbox' && (
+          <button className="icon-btn" onClick={handleRefreshAll} disabled={syncingAll} title="Refresh all">
+            {syncingAll ? <span className="spinner"></span> : <Icon name="refresh" size={13} />}
+          </button>
+        )}
+      </div>
+
+      {budgetWarn && (
+        <div className="banner warn">
+          <Icon name="alert" size={12} /> Approaching monthly cap — {Math.round(monthlySpend / config.budgetCapMonthly * 100)}% of ${config.budgetCapMonthly.toFixed(2)}
+        </div>
+      )}
+      {budgetHit && (
+        <div className="banner danger">
+          <Icon name="alert" size={12} /> Monthly cap reached. Mode B is paused. On-demand analyses will confirm before proceeding.
+        </div>
+      )}
+
+      {page === 'inbox' && (
+        <div className={mainLayoutClass}>
+          <aside className="sidebar">
+            <div className="sidebar-scroll">
+              <AccountsList
+                accounts={accounts}
+                selectedAccountId={selectedAccountId}
+                setSelectedAccountId={setSelectedAccountId}
+                onAddAccount={handleAddAccount}
+                emailCountByAccount={emailCountByAccount}
+              />
+              <CategoryList
+                categories={config.categories}
+                selectedCategoryId={selectedCategoryId}
+                setSelectedCategoryId={setSelectedCategoryId}
+                emailCountByCategory={emailCountByCategory}
+              />
+              <EB1ARadar
+                emails={allEmails}
+                analyses={analyses}
+                onOpenEvidence={() => setEvidenceOpen(true)}
+                onSelectEmail={(e) => setSelectedThreadId(e.threadId)}
+              />
+            </div>
+          </aside>
+
+          <section className="list-panel">
+            <div className="list-header">
+              <div>
+                <div className="list-title">
+                  {selectedAccountId === 'all' ? 'All inboxes' : accounts.find(a => a.id === selectedAccountId)?.label || 'Inbox'}
+                  <span className="list-title-meta"> · {filteredEmails.length}</span>
+                </div>
+              </div>
+              <div className="list-actions">
+                {accounts.length === 0 && (
+                  <button className="btn primary sm" onClick={handleAddAccount}>
+                    <Icon name="plus" size={12} /> Add account
+                  </button>
+                )}
+              </div>
+            </div>
+            {accounts.length === 0 ? (
+              <div className="empty">
+                <div className="empty-icon">◈</div>
+                <div className="empty-title">No accounts connected</div>
+                <div className="empty-text">Connect your first Gmail account to start triaging. You can connect up to ten.</div>
+                <button className="btn primary" style={{ marginTop: 14 }} onClick={handleAddAccount}>
+                  <Icon name="plus" size={12} /> Connect Gmail
+                </button>
+              </div>
+            ) : (
+              <EmailList
+                emails={filteredEmails}
+                selectedThreadId={selectedThreadId}
+                setSelectedThreadId={setSelectedThreadId}
+                accounts={accounts}
+                analyses={analyses}
+                categories={config.categories}
+              />
+            )}
+          </section>
+
+          <aside className="detail-panel">
+            <DetailPanel
+              email={selectedEmail}
+              accounts={accounts}
+              analysis={selectedEmail ? analyses[selectedEmail.threadId] : null}
+              config={config}
+              onAnalyze={handleAnalyzeOne}
+              analyzing={selectedEmail && analyzingThread === selectedEmail.threadId}
+              onReply={handleReply}
+              onArchive={handleArchive}
+              onTrash={handleTrash}
+              onLabelEb1aEvidence={handleSaveEvidence}
+            />
+          </aside>
+        </div>
+      )}
+
+      {page === 'usage' && (
+        <UsageDashboard config={config} setConfig={setConfig} accounts={accounts} />
+      )}
+
+      {page === 'settings' && (
+        <SettingsPage config={config} setConfig={setConfig} accounts={accounts} setAccounts={setAccounts} onAddAccount={handleAddAccount} toast={toast} />
+      )}
+
+      {composerOpen && composerEmail && (
+        <ReplyComposer
+          email={composerEmail}
+          accounts={accounts}
+          config={config}
+          onClose={() => { setComposerOpen(false); setComposerEmail(null); }}
+          onSent={() => { setComposerOpen(false); setComposerEmail(null); }}
+        />
+      )}
+
+      {evidenceOpen && <EvidenceModal onClose={() => setEvidenceOpen(false)} />}
+    </>
+  );
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+
+if (handleOAuthRedirect()) {
+  // page will close itself
+} else {
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(
+    <ToastProvider>
+      <App />
+    </ToastProvider>
+  );
+}
+</script>
+</body>
+</html>
