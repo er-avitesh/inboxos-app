@@ -1197,6 +1197,250 @@
     border: 1px solid rgba(232, 156, 160, 0.4);
   }
 
+  /* ---------- multi-select ---------- */
+  .email-select {
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--line-bright);
+    border-radius: 3px;
+    background: var(--bg-1);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    flex-shrink: 0;
+  }
+  .email-select:hover { border-color: var(--accent-dim); }
+  .email-select.checked { background: var(--accent); border-color: var(--accent-dim); }
+  .email-select.checked::after {
+    content: '';
+    width: 7px; height: 7px;
+    background: var(--bg-1);
+    border-radius: 1.5px;
+    transform: scale(0.8);
+  }
+  .multiselect-bar {
+    padding: 8px 18px;
+    background: var(--accent-soft);
+    border-bottom: 1px solid var(--accent-dim);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: #6a8858;
+    flex-shrink: 0;
+  }
+  .multiselect-bar strong { color: var(--ink-0); }
+
+  /* ---------- resize handle ---------- */
+  .resize-handle {
+    width: 5px;
+    background: transparent;
+    cursor: col-resize;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+  }
+  .resize-handle::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px; height: 32px;
+    background: var(--line-bright);
+    border-radius: 1px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .resize-handle:hover::before, .resize-handle.dragging::before { opacity: 1; background: var(--accent-dim); }
+  .resize-handle.dragging { background: var(--accent-soft); }
+
+  /* ---------- expanded reader ---------- */
+  .reader-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(90, 81, 102, 0.35);
+    backdrop-filter: blur(8px);
+    z-index: 55;
+    display: grid;
+    place-items: center;
+    padding: 32px;
+    animation: fade-in 0.18s ease;
+  }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  .reader-modal {
+    width: min(880px, 100%);
+    height: min(88vh, 900px);
+    background: var(--bg-1);
+    border: 1px solid var(--line-bright);
+    border-radius: var(--r-xl);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(90, 81, 102, 0.25);
+    position: relative;
+  }
+  .reader-head {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    flex-shrink: 0;
+  }
+  .reader-subject {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1.25;
+    color: var(--ink-0);
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+    padding-right: 40px;
+  }
+  .reader-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .reader-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 28px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink-0);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .reader-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+  }
+  .reader-actions {
+    padding: 12px 20px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-2);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  /* ---------- loading overlay ---------- */
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(251, 247, 242, 0.88);
+    backdrop-filter: blur(2px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 10;
+    animation: fade-in 0.2s ease;
+  }
+  .loading-ring {
+    width: 32px; height: 32px;
+    border: 2.5px solid var(--bg-3);
+    border-top-color: var(--accent-dim);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  .loading-label {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink-1);
+    letter-spacing: -0.01em;
+  }
+  .loading-sub {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ---------- last sync ---------- */
+  .sync-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    height: 26px;
+    border-radius: 13px;
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .sync-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+  }
+
+  /* ---------- radar item delete ---------- */
+  .radar-item { position: relative; }
+  .radar-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 18px; height: 18px;
+    border-radius: 3px;
+    border: none;
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s ease;
+  }
+  .radar-item:hover .radar-delete { display: flex; }
+  .radar-delete:hover { background: rgba(232, 156, 160, 0.18); color: var(--danger-ink); }
+
+  /* ---------- info chip button ---------- */
+  .info-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .info-chip:hover { border-color: var(--accent-dim); color: #6a8858; background: var(--accent-soft); }
+
+  /* ---------- scanning indicator ---------- */
+  .scan-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-dim);
+    border-radius: var(--r-md);
+    font-size: 11.5px;
+    color: #6a8858;
+    margin: 0 14px 10px;
+  }
+
   /* ---------- scrollbars ---------- */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -1268,9 +1512,11 @@ const { useState, useEffect, useRef, useMemo, useCallback } = React;
    CONFIG & CONSTANTS
    ============================================================ */
 
-const ANTHROPIC_MODEL = 'claude-sonnet-4-20250514';
-const COST_INPUT_PER_TOKEN = 0.000003;
-const COST_OUTPUT_PER_TOKEN = 0.000015;
+const ANTHROPIC_MODELS = {
+  'claude-haiku-4-5': { label: 'Haiku 4.5 — fast, cheap (recommended)', inputPerToken: 0.000001, outputPerToken: 0.000005 },
+  'claude-sonnet-4-5': { label: 'Sonnet 4.5 — smarter, 3x cost', inputPerToken: 0.000003, outputPerToken: 0.000015 },
+};
+const DEFAULT_MODEL = 'claude-haiku-4-5';
 
 const DEFAULT_CATEGORIES = [
   { id: 'eb1a', label: 'EB-1A opportunity', color: '#e89ca0', desc: 'Judging invitations, speaking requests, media mentions, citation alerts, award nominations' },
@@ -1309,31 +1555,179 @@ const CRITERION_RANK = {
 };
 
 /* ============================================================
-   STORAGE LAYER
+   STORAGE LAYER — IndexedDB with localStorage-compatible API
+   ============================================================
+   Why IndexedDB: localStorage in some browsers gets wiped on close
+   (privacy settings, incognito), has ~5-10MB quota, and sync-only.
+   IndexedDB: ~50MB+ quota, survives better, async. We keep the same
+   sync-looking API by using a synchronous in-memory cache that's
+   hydrated from IDB on boot, with async writes.
    ============================================================ */
 
+const IDB_NAME = 'inboxos_db';
+const IDB_STORE = 'kv';
+const IDB_VERSION = 1;
+let _idb = null;
+let _idbReady = null;
+
+function openIDB() {
+  if (_idbReady) return _idbReady;
+  _idbReady = new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE);
+      }
+    };
+    req.onsuccess = () => { _idb = req.result; resolve(_idb); };
+    req.onerror = () => reject(req.error);
+  });
+  return _idbReady;
+}
+
+async function idbGetAll() {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const store = tx.objectStore(IDB_STORE);
+    const result = {};
+    const req = store.openCursor();
+    req.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) {
+        result[cursor.key] = cursor.value;
+        cursor.continue();
+      } else {
+        resolve(result);
+      }
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbSet(key, value) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function idbDelete(key) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// In-memory cache — mirrors IDB for synchronous access
+const _cache = {};
+let _cacheHydrated = false;
+
+// Migrate localStorage → IDB once, then use IDB
+async function hydrateStorage() {
+  try {
+    // Load from IDB
+    const all = await idbGetAll();
+    for (const [k, v] of Object.entries(all)) _cache[k] = v;
+
+    // One-time migration from localStorage if any inboxos_* keys exist there
+    // and aren't already in IDB
+    let migrated = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith('inboxos_')) continue;
+      if (_cache[key] !== undefined) continue; // already in IDB
+      try {
+        const raw = localStorage.getItem(key);
+        const value = raw ? JSON.parse(raw) : null;
+        if (value !== null) {
+          _cache[key] = value;
+          await idbSet(key, value);
+          migrated++;
+        }
+      } catch (e) { /* skip malformed */ }
+    }
+    _cacheHydrated = true;
+    if (migrated > 0) console.log(`[InboxOS] Migrated ${migrated} keys from localStorage to IndexedDB`);
+    return migrated;
+  } catch (e) {
+    console.error('[InboxOS] IDB hydrate failed, falling back to localStorage:', e);
+    // Fallback: hydrate cache from localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith('inboxos_')) continue;
+      try {
+        const raw = localStorage.getItem(key);
+        _cache[key] = raw ? JSON.parse(raw) : null;
+      } catch {}
+    }
+    _cacheHydrated = true;
+    return -1;
+  }
+}
+
+// Storage API — same shape as before, now backed by IDB + sync cache
 const storage = {
   get(key, fallback = null) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return fallback;
-      return JSON.parse(raw);
-    } catch { return fallback; }
+    if (_cache[key] === undefined) return fallback;
+    return _cache[key];
   },
   set(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error('Storage write failed:', e); }
+    _cache[key] = value;
+    // Fire-and-forget async write — if IDB fails, fall back to localStorage
+    idbSet(key, value).catch(e => {
+      console.warn('[InboxOS] IDB write failed, using localStorage:', e);
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+    });
+    // Also mirror to localStorage for cross-tool compat (small overhead, big safety)
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
   },
-  remove(key) { try { localStorage.removeItem(key); } catch {} },
-  keys() { return Object.keys(localStorage); },
+  remove(key) {
+    delete _cache[key];
+    idbDelete(key).catch(() => {});
+    try { localStorage.removeItem(key); } catch {}
+  },
+  keys() {
+    return Object.keys(_cache);
+  },
+  // Diagnostic
+  async info() {
+    const ls = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('inboxos_')) ls.push(k);
+    }
+    const idb = Object.keys(_cache);
+    let idbQuota = null;
+    try {
+      if (navigator.storage?.estimate) {
+        const est = await navigator.storage.estimate();
+        idbQuota = { used: est.usage, quota: est.quota };
+      }
+    } catch {}
+    return { localStorageKeys: ls.length, idbKeys: idb.length, cacheKeys: idb.length, idbQuota, hydrated: _cacheHydrated };
+  },
 };
 
 function loadConfig() {
   return storage.get('inboxos_config', {
     googleClientId: '',
     anthropicApiKey: '',
+    anthropicModel: DEFAULT_MODEL,
     budgetCapMonthly: 10.0,
     defaultMode: 'c',
     currentMode: 'c',
+    pullLimit: 100,                // max emails per account per refresh (hard cap)
+    pullWindow: '1d',              // time window: '1d', '3d', '7d', '14d', 'all'
+    analysisCapPerRefresh: 50,     // max AI calls per refresh across all accounts
+    skipAIForObvious: true,        // skip AI on pre-classified noise
     categories: DEFAULT_CATEGORIES,
     onboardingComplete: false,
   });
@@ -1635,6 +2029,28 @@ function parseFromHeader(from) {
   return { name: from.trim(), email: from.trim() };
 }
 
+function parseUnsubscribe(headers) {
+  // RFC 2369 List-Unsubscribe: e.g. <mailto:u@ex.com>, <https://ex.com/unsub?id=123>
+  // RFC 8058 List-Unsubscribe-Post: "List-Unsubscribe=One-Click" (indicates one-click POST support)
+  const lu = parseHeaderValue(headers, 'List-Unsubscribe');
+  const lup = parseHeaderValue(headers, 'List-Unsubscribe-Post');
+  if (!lu) return null;
+  const urls = [];
+  const mailtos = [];
+  // Match <...> groups
+  const matches = lu.match(/<([^>]+)>/g) || [];
+  for (const m of matches) {
+    const v = m.slice(1, -1).trim();
+    if (v.startsWith('mailto:')) mailtos.push(v.slice(7));
+    else if (v.startsWith('http')) urls.push(v);
+  }
+  return {
+    urls,
+    mailtos,
+    oneClick: /One-Click/i.test(lup), // RFC 8058 — can POST silently
+  };
+}
+
 function normalizeThread(thread, account) {
   const messages = thread.messages || [];
   const last = messages[messages.length - 1];
@@ -1649,6 +2065,7 @@ function normalizeThread(thread, account) {
   const snippet = thread.snippet || last.snippet || '';
   const labels = last.labelIds || [];
   const isUnread = labels.includes('UNREAD');
+  const unsubscribe = parseUnsubscribe(headers);
   return {
     threadId: thread.id,
     messageId: last.id,
@@ -1661,6 +2078,7 @@ function normalizeThread(thread, account) {
     snippet,
     labels,
     isUnread,
+    unsubscribe,
     receivingAccountId: account.id,
     receivingAccountEmail: account.email,
   };
@@ -1677,11 +2095,23 @@ function formatTime(timestamp) {
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
+function formatRelative(timestamp) {
+  if (!timestamp) return 'never';
+  const diffMs = Date.now() - timestamp;
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 /* ============================================================
    CLAUDE API
    ============================================================ */
 
-async function callClaude({ apiKey, systemPrompt, userPrompt }) {
+async function callClaude({ apiKey, model, systemPrompt, userPrompt, maxTokens = 400 }) {
   if (!apiKey) throw new Error('Anthropic API key not set');
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -1692,8 +2122,8 @@ async function callClaude({ apiKey, systemPrompt, userPrompt }) {
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model: ANTHROPIC_MODEL,
-      max_tokens: 1000,
+      model: model || DEFAULT_MODEL,
+      max_tokens: maxTokens,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     }),
@@ -1712,49 +2142,29 @@ async function callClaude({ apiKey, systemPrompt, userPrompt }) {
 }
 
 function buildTriageSystemPrompt(categories) {
-  const catList = categories.map(c => c.id).join(', ');
-  return `You are an AI email assistant for Avitesh Kesharwani. He is a researcher and software engineer living in Concord, North Carolina. He is actively pursuing an EB-1A extraordinary ability visa petition. He is also a part-time student and owns a laundry business. He has up to 10 Gmail accounts (personal, family, college, business).
+  const catList = categories.map(c => c.id).join('|');
+  return `You are a Gmail triage assistant for Avitesh Kesharwani (researcher/engineer in Concord NC, pursuing EB-1A visa, part-time student, owns laundry business).
 
-Your job is to triage an incoming email and return a structured JSON response only. No preamble, no markdown, no code fences — just raw JSON.
+Output JSON only, no preamble, no fences. Schema:
+{"category":"<${catList}>","summary":"<1 sentence>","suggestedAction":"<reply|archive|save|unsubscribe|review>","priority":"<high|medium|low>","eb1aSignal":{"detected":<bool>,"criterion":"<judging|publications|critical_role|media|high_salary|awards|memberships|contributions|null>","explanation":"<1 sentence or null>"}}
 
-EB-1A criteria to watch for:
-- judging: Invitations to review papers, judge competitions, review grants
-- publications: Citation alerts, co-author requests, publication acceptances
-- critical_role: Job offers or recognition noting his leadership/critical role
-- media: Press coverage, interview requests, podcast invitations
-- high_salary: Job offers with exceptional compensation
-- awards: Award nominations or recognitions
-- memberships: Invitations to distinguished professional organizations
-- contributions: Evidence of original contributions cited or built upon by others
-
-Categories available: ${catList}
-
-Response format (JSON only):
-{
-  "category": "<category_id>",
-  "summary": "<one sentence describing what this email is and what it wants>",
-  "suggestedAction": "<one concrete action: reply, archive, save, unsubscribe, review>",
-  "priority": "<high|medium|low>",
-  "eb1aSignal": {
-    "detected": <true|false>,
-    "criterion": "<criterion_id or null>",
-    "explanation": "<one sentence, or null>"
-  }
-}`;
+EB-1A signals: judging (review papers/competitions), publications (citations, accepts), critical_role (leadership recognition), media (press/podcast), high_salary (exceptional offers), awards, memberships (distinguished orgs), contributions (work cited/built on).`;
 }
 
 async function analyzeEmail(email, config) {
+  const model = config.anthropicModel || DEFAULT_MODEL;
+  const modelInfo = ANTHROPIC_MODELS[model] || ANTHROPIC_MODELS[DEFAULT_MODEL];
   const systemPrompt = buildTriageSystemPrompt(config.categories);
-  const userPrompt = `Triage this email:
-From: ${email.from.name} <${email.from.email}>
-Subject: ${email.subject}
-Snippet: ${email.snippet}
-Body: ${email.body.slice(0, 500)}`;
+  // Leaner prompt - no redundant labels, shorter body slice, snippet only if body is empty
+  const bodyText = (email.body || email.snippet || '').slice(0, 300);
+  const userPrompt = `From: ${email.from.name}\nSubject: ${email.subject}\nBody: ${bodyText}`;
 
   const { text, inputTokens, outputTokens } = await callClaude({
     apiKey: config.anthropicApiKey,
+    model,
     systemPrompt,
     userPrompt,
+    maxTokens: 250,
   });
 
   let parsed;
@@ -1771,26 +2181,99 @@ Body: ${email.body.slice(0, 500)}`;
     };
   }
 
-  const cost = inputTokens * COST_INPUT_PER_TOKEN + outputTokens * COST_OUTPUT_PER_TOKEN;
-  return { ...parsed, inputTokens, outputTokens, cost };
+  const cost = inputTokens * modelInfo.inputPerToken + outputTokens * modelInfo.outputPerToken;
+  return { ...parsed, inputTokens, outputTokens, cost, model };
 }
 
 async function draftReply(email, instruction, config) {
-  const systemPrompt = `You are drafting a professional email reply for Avitesh Kesharwani. Write only the reply body — no subject line, no "Here is a draft" preamble. Keep it concise and natural. Match the tone of the original email (formal if formal, casual if casual). Sign off as "Avitesh".`;
-  const userPrompt = `Draft a reply to this email.
-Original sender: ${email.from.name} <${email.from.email}>
-Original subject: ${email.subject}
-Original body: ${email.body}
-${instruction ? `\nUser instruction: ${instruction}` : ''}`;
+  const model = config.anthropicModel || DEFAULT_MODEL;
+  const modelInfo = ANTHROPIC_MODELS[model] || ANTHROPIC_MODELS[DEFAULT_MODEL];
+  const systemPrompt = `Draft a professional email reply for Avitesh Kesharwani. Write only the reply body — no subject, no preamble. Match the tone of the original. Sign off as "Avitesh".`;
+  const userPrompt = `Reply to this email.\nFrom: ${email.from.name} <${email.from.email}>\nSubject: ${email.subject}\nBody: ${email.body.slice(0, 1500)}${instruction ? `\n\nUser instruction: ${instruction}` : ''}`;
 
   const { text, inputTokens, outputTokens } = await callClaude({
     apiKey: config.anthropicApiKey,
+    model,
     systemPrompt,
     userPrompt,
+    maxTokens: 500,
   });
-  const cost = inputTokens * COST_INPUT_PER_TOKEN + outputTokens * COST_OUTPUT_PER_TOKEN;
-  return { text: text.trim(), inputTokens, outputTokens, cost };
+  const cost = inputTokens * modelInfo.inputPerToken + outputTokens * modelInfo.outputPerToken;
+  return { text: text.trim(), inputTokens, outputTokens, cost, model };
 }
+
+/* ============================================================
+   RULE-BASED PRE-CLASSIFIER — free triage for obvious emails
+   ============================================================ */
+
+// Returns an analysis-shaped object for emails we can classify without AI,
+// or null if AI is needed. This saves ~30-50% of API calls on typical inboxes.
+function preClassify(email) {
+  const from = (email.from.email || '').toLowerCase();
+  const fromName = (email.from.name || '').toLowerCase();
+  const subject = (email.subject || '').toLowerCase();
+  const snippet = (email.snippet || '').toLowerCase();
+  const all = `${from} ${fromName} ${subject} ${snippet}`;
+
+  // Obvious promo/marketing patterns
+  const promoSenders = [
+    'dollarshaveclub', 'lowes.com', 'whirlpool', 'nerdwallet', 'target.com',
+    'groupon', 'bestbuy', 'homedepot', 'macys', 'kohls', 'wayfair',
+    'email.', 'marketing.', 'promo.', 'deals.', 'news.', 'updates.',
+    'offers.', 'go.', 'mail.', 'e.', 'em.', 'notifications@',
+  ];
+  const promoKeywords = ['% off', 'unsubscribe', 'limited time', 'deal', 'sale ends', 'free shipping'];
+  const promoHit = promoSenders.some(p => from.includes(p)) || promoKeywords.filter(k => all.includes(k)).length >= 2;
+
+  if (promoHit && !subject.includes('receipt') && !subject.includes('order')) {
+    return makeAnalysis('delete', 'Promotional email / marketing', 'unsubscribe', 'low');
+  }
+
+  // Weather & emergency alerts
+  if (from.includes('weather.gov') || from.includes('noaa') || fromName.includes('weather') || subject.includes('weather alert')) {
+    return makeAnalysis('weather_alerts', 'Weather or emergency alert', 'review', 'medium');
+  }
+
+  // LinkedIn job alerts
+  if (from.includes('linkedin.com') && (subject.includes('job') || subject.includes('hiring') || subject.includes('opportunity'))) {
+    return makeAnalysis('career', 'LinkedIn job alert', 'review', 'low');
+  }
+
+  // Gmail's own notifications / security
+  if (from.includes('no-reply@accounts.google.com') || from.includes('googlemail.com')) {
+    return makeAnalysis('admin', 'Google account notification', 'review', 'low');
+  }
+
+  // Known newsletter patterns
+  const newsletterSenders = ['substack.com', 'mailchi.mp', 'campaign-archive', 'beehiiv.com', 'buttondown.email'];
+  if (newsletterSenders.some(n => from.includes(n))) {
+    return makeAnalysis('news', 'Newsletter / digest', 'review', 'low');
+  }
+
+  // Receipts and transactional
+  if (/receipt|invoice|payment|order #|confirmation/.test(subject) && !promoHit) {
+    return makeAnalysis('finance', 'Receipt / transaction confirmation', 'archive', 'low');
+  }
+
+  // Can't confidently classify — let AI handle it
+  return null;
+}
+
+function makeAnalysis(category, summary, action, priority) {
+  return {
+    category,
+    summary,
+    suggestedAction: action,
+    priority,
+    eb1aSignal: { detected: false, criterion: null, explanation: null },
+    inputTokens: 0,
+    outputTokens: 0,
+    cost: 0,
+    preClassified: true,
+  };
+}
+
+
 
 /* ============================================================
    ICONS
@@ -1819,6 +2302,8 @@ const Icon = ({ name, size = 14 }) => {
     case 'alert': return <svg {...common}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
     case 'lock': return <svg {...common}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
     case 'menu': return <svg {...common}><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+    case 'maximize': return <svg {...common}><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>;
+    case 'info': return <svg {...common}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>;
     default: return null;
   }
 };
@@ -2038,12 +2523,14 @@ function CategoryList({ categories, selectedCategoryId, setSelectedCategoryId, e
   );
 }
 
-function EB1ARadar({ emails, analyses, onOpenEvidence, onSelectEmail }) {
+function EB1ARadar({ emails, analyses, onOpenEvidence, onSelectEmail, onDismissSignal, onOpenInfo }) {
   const signals = useMemo(() => {
     const out = [];
+    const dismissed = storage.get('inboxos_dismissed_signals', []);
+    const dismissedSet = new Set(dismissed);
     for (const email of emails) {
       const a = analyses[email.threadId];
-      if (a?.eb1aSignal?.detected) {
+      if (a?.eb1aSignal?.detected && !dismissedSet.has(email.threadId)) {
         out.push({ email, analysis: a });
       }
     }
@@ -2059,6 +2546,13 @@ function EB1ARadar({ emails, analyses, onOpenEvidence, onSelectEmail }) {
       </div>
       {signals.slice(0, 5).map(s => (
         <div key={s.email.threadId} className="radar-item" onClick={() => onSelectEmail(s.email)}>
+          <button
+            className="radar-delete"
+            title="Dismiss signal"
+            onClick={(ev) => { ev.stopPropagation(); onDismissSignal(s.email.threadId); }}
+          >
+            <Icon name="x" size={11} />
+          </button>
           <div className="radar-criterion">{CRITERION_LABELS[s.analysis.eb1aSignal.criterion] || s.analysis.eb1aSignal.criterion}</div>
           <div className="radar-subject">{s.email.subject}</div>
           <div className="radar-sender">{s.email.from.name}</div>
@@ -2069,9 +2563,14 @@ function EB1ARadar({ emails, analyses, onOpenEvidence, onSelectEmail }) {
           No signals detected yet. Analyze emails to populate.
         </div>
       )}
-      <button className="side-btn" onClick={onOpenEvidence} style={{ marginTop: 10 }}>
-        Evidence register
-      </button>
+      <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+        <button className="side-btn" style={{ marginTop: 0, flex: 1 }} onClick={onOpenEvidence}>
+          Evidence register
+        </button>
+        <button className="info-chip" onClick={onOpenInfo} title="What's this?">
+          ?
+        </button>
+      </div>
     </div>
   );
 }
@@ -2080,7 +2579,7 @@ function EB1ARadar({ emails, analyses, onOpenEvidence, onSelectEmail }) {
    EMAIL LIST
    ============================================================ */
 
-function EmailList({ emails, selectedThreadId, setSelectedThreadId, accounts, analyses, categories }) {
+function EmailList({ emails, selectedThreadId, setSelectedThreadId, accounts, analyses, categories, selectedThreadIds, toggleSelect, multiselectMode }) {
   const accountMap = useMemo(() => Object.fromEntries(accounts.map(a => [a.id, a])), [accounts]);
   const categoryMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
 
@@ -2100,6 +2599,7 @@ function EmailList({ emails, selectedThreadId, setSelectedThreadId, accounts, an
         const account = accountMap[e.receivingAccountId];
         const analysis = analyses[e.threadId];
         const cat = analysis && categoryMap[analysis.category];
+        const isSelected = selectedThreadIds && selectedThreadIds.has(e.threadId);
         return (
           <div
             key={e.threadId}
@@ -2107,7 +2607,15 @@ function EmailList({ emails, selectedThreadId, setSelectedThreadId, accounts, an
             onClick={() => setSelectedThreadId(e.threadId)}
           >
             <div className="email-account-bar" style={{ background: account?.color || 'var(--line)' }}></div>
-            <div className={`email-priority ${analysis?.priority || ''}`}></div>
+            {multiselectMode ? (
+              <div
+                className={`email-select ${isSelected ? 'checked' : ''}`}
+                onClick={(ev) => { ev.stopPropagation(); toggleSelect(e.threadId); }}
+                title={isSelected ? 'Deselect' : 'Select'}
+              ></div>
+            ) : (
+              <div className={`email-priority ${analysis?.priority || ''}`}></div>
+            )}
             <div className="email-content">
               <div className="email-meta-line">
                 <span className="email-sender">{e.from.name}</span>
@@ -2129,6 +2637,11 @@ function EmailList({ emails, selectedThreadId, setSelectedThreadId, accounts, an
                       EB-1A · {CRITERION_LABELS[analysis.eb1aSignal.criterion] || 'signal'}
                     </span>
                   )}
+                  {e.unsubscribe && (
+                    <span className="email-ai-tag" style={{ color: '#8a6acc', borderColor: 'rgba(200,168,212,0.4)', background: 'rgba(200,168,212,0.1)' }} title="This email has a List-Unsubscribe header">
+                      unsub
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -2144,7 +2657,7 @@ function EmailList({ emails, selectedThreadId, setSelectedThreadId, accounts, an
    DETAIL PANEL
    ============================================================ */
 
-function DetailPanel({ email, accounts, analysis, config, onAnalyze, onAnalyzing, analyzing, onReply, onArchive, onTrash, onLabelEb1aEvidence }) {
+function DetailPanel({ email, accounts, analysis, config, onAnalyze, onAnalyzing, analyzing, onReply, onArchive, onTrash, onLabelEb1aEvidence, onExpand, onUnsubscribe }) {
   if (!email) {
     return (
       <div className="empty">
@@ -2161,7 +2674,12 @@ function DetailPanel({ email, accounts, analysis, config, onAnalyze, onAnalyzing
     <>
       <div className="detail-scroll">
         <div className="detail-header">
-          <div className="detail-subject">{email.subject}</div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <div className="detail-subject" style={{ flex: 1 }}>{email.subject}</div>
+            <button className="icon-btn" title="Open in expanded view" onClick={() => onExpand && onExpand(email)}>
+              <Icon name="maximize" size={13} />
+            </button>
+          </div>
           <div className="detail-meta-row">
             <span className="detail-from">{email.from.name}</span>
             <span>&lt;{email.from.email}&gt;</span>
@@ -2238,11 +2756,16 @@ function DetailPanel({ email, accounts, analysis, config, onAnalyze, onAnalyzing
         <button className="btn primary sm" onClick={() => onReply(email)}>
           <Icon name="reply" size={12} /> Reply
         </button>
-        <button className="btn sm" onClick={() => onArchive(email)}>
+        <button className="btn sm" onClick={() => onArchive(email)} title="Remove from inbox but keep in Gmail — retrievable via All Mail">
           <Icon name="archive" size={12} /> Archive
         </button>
-        <button className="btn sm danger" onClick={() => onTrash(email)}>
-          <Icon name="trash" size={12} /> Delete
+        {email.unsubscribe && (
+          <button className="btn sm" onClick={() => onUnsubscribe(email)} title={email.unsubscribe.oneClick ? 'One-click unsubscribe (RFC 8058)' : 'Open unsubscribe page'} style={{ color: '#8a6acc', borderColor: 'rgba(200,168,212,0.4)' }}>
+            <Icon name="x" size={11} /> Unsubscribe
+          </button>
+        )}
+        <button className="btn sm danger" onClick={() => onTrash(email)} title="Moves to Gmail Trash — auto-deleted after 30 days">
+          <Icon name="trash" size={12} /> Trash
         </button>
       </div>
     </>
@@ -2734,12 +3257,89 @@ function SettingsPage({ config, setConfig, accounts, setAccounts, onAddAccount, 
         <h2>Behavior</h2>
         <div className="settings-body">
           <div className="form-row">
+            <label className="form-label">Pull window</label>
+            <div className="hstack" style={{ flexWrap: 'wrap' }}>
+              {[
+                { id: '1d', label: 'Today' },
+                { id: '3d', label: '3 days' },
+                { id: '7d', label: '1 week' },
+                { id: '14d', label: '2 weeks' },
+                { id: 'all', label: 'All' },
+              ].map(w => (
+                <button key={w.id}
+                  className={`btn ${(localConfig.pullWindow || '1d') === w.id ? 'primary' : ''}`}
+                  onClick={() => persist({ pullWindow: w.id })}>
+                  {w.label}
+                </button>
+              ))}
+            </div>
+            <div className="form-help">
+              Time window for "refresh." Gmail's <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11, background: 'var(--bg-3)', padding: '1px 4px', borderRadius: 3 }}>newer_than</code> filter decides which threads come back. Narrower = fewer AI calls.
+            </div>
+          </div>
+
+          <div className="form-row">
+            <label className="form-label">Max emails per account per refresh (hard cap)</label>
+            <div className="hstack" style={{ gap: 12 }}>
+              <input type="range" min="20" max="200" step="10"
+                value={localConfig.pullLimit || 100}
+                onChange={e => persist({ pullLimit: parseInt(e.target.value, 10) })}
+                style={{ flex: 1, maxWidth: 300, accentColor: 'var(--accent-dim)' }} />
+              <span className="mono" style={{ fontSize: 13, color: 'var(--ink-0)', minWidth: 32 }}>{localConfig.pullLimit || 100}</span>
+            </div>
+            <div className="form-help">
+              Safety cap — even if the time window matches 500 emails, only this many are fetched per account.
+            </div>
+          </div>
+
+          <div className="form-row">
+            <label className="form-label">Max AI analyses per refresh</label>
+            <div className="hstack" style={{ gap: 12 }}>
+              <input type="range" min="0" max="200" step="10"
+                value={localConfig.analysisCapPerRefresh ?? 50}
+                onChange={e => persist({ analysisCapPerRefresh: parseInt(e.target.value, 10) })}
+                style={{ flex: 1, maxWidth: 300, accentColor: 'var(--accent-dim)' }} />
+              <span className="mono" style={{ fontSize: 13, color: 'var(--ink-0)', minWidth: 32 }}>{localConfig.analysisCapPerRefresh ?? 50}</span>
+            </div>
+            <div className="form-help">
+              In Mode B, at most this many emails get sent to Claude per refresh. Rule-based pre-classification is free and runs on ALL emails regardless. Set to 0 to disable AI auto-scan entirely (same effect as Mode C).
+            </div>
+          </div>
+
+          <div className="form-row">
+            <label className="form-label">Free rule-based pre-classifier</label>
+            <div className="hstack">
+              <button className={`btn ${localConfig.skipAIForObvious !== false ? 'primary' : ''}`} onClick={() => persist({ skipAIForObvious: true })}>On</button>
+              <button className={`btn ${localConfig.skipAIForObvious === false ? 'primary' : ''}`} onClick={() => persist({ skipAIForObvious: false })}>Off</button>
+            </div>
+            <div className="form-help">
+              Instantly categorizes obvious emails (promos, weather alerts, LinkedIn jobs, newsletters, receipts) without calling Claude. Recommended on — saves 30-50% of AI calls.
+            </div>
+          </div>
+
+          <div className="form-row">
+            <label className="form-label">AI model</label>
+            <div className="hstack" style={{ flexWrap: 'wrap' }}>
+              {Object.entries(ANTHROPIC_MODELS).map(([id, info]) => (
+                <button key={id}
+                  className={`btn ${(localConfig.anthropicModel || DEFAULT_MODEL) === id ? 'primary' : ''}`}
+                  onClick={() => persist({ anthropicModel: id })}>
+                  {info.label}
+                </button>
+              ))}
+            </div>
+            <div className="form-help">
+              Haiku 4.5 handles email triage at 1/3 the cost of Sonnet 4.5 with nearly identical accuracy for this task. Stick with Haiku unless you notice categorization errors.
+            </div>
+          </div>
+
+          <div className="form-row">
             <label className="form-label">Default AI mode</label>
             <div className="hstack">
               <button className={`btn ${localConfig.defaultMode === 'b' ? 'primary' : ''}`} onClick={() => persist({ defaultMode: 'b' })}>Mode B — Automatic</button>
               <button className={`btn ${localConfig.defaultMode === 'c' ? 'primary' : ''}`} onClick={() => persist({ defaultMode: 'c' })}>Mode C — On-demand</button>
             </div>
-            <div className="form-help">Mode B ~$4–6/month. Mode C ~$0/month. Switch anytime from the top bar.</div>
+            <div className="form-help">Mode B ~$2–4/month with Haiku. Mode C ~$0/month. Switch anytime from the top bar.</div>
           </div>
           <div className="form-row">
             <label className="form-label">Monthly budget cap (USD)</label>
@@ -2751,17 +3351,99 @@ function SettingsPage({ config, setConfig, accounts, setAccounts, onAddAccount, 
       </div>
 
       <div className="settings-section">
-        <h2>Data</h2>
+        <h2>Storage & data</h2>
         <div className="settings-body">
-          <div className="hstack" style={{ flexWrap: 'wrap' }}>
+          <StorageDiagnostics />
+          <div className="hstack" style={{ flexWrap: 'wrap', marginTop: 16 }}>
             <button className="btn" onClick={exportEvidence}><Icon name="download" size={12} /> Export EB-1A evidence (CSV)</button>
             <button className="btn danger" onClick={resetAll}>Reset everything</button>
           </div>
           <div className="form-help" style={{ marginTop: 10 }}>
-            All data is stored in this browser's localStorage. Nothing is synced to a server. Tokens remain on this device only.
+            InboxOS uses IndexedDB (with localStorage mirror) for persistence. Data stays on this device only. Cloud sync via Supabase is on the roadmap.
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function StorageDiagnostics() {
+  const [info, setInfo] = useState(null);
+  const [analysisCount, setAnalysisCount] = useState(0);
+  const [evidenceCount, setEvidenceCount] = useState(0);
+  const [usageCount, setUsageCount] = useState(0);
+  const [accountCount, setAccountCount] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const i = await storage.info();
+        if (!mounted) return;
+        setInfo(i);
+        let analyses = 0, accounts = 0;
+        for (const k of storage.keys()) {
+          if (k.startsWith('inboxos_analysis_')) analyses++;
+          if (k.startsWith('inboxos_account_')) accounts++;
+        }
+        setAnalysisCount(analyses);
+        setAccountCount(accounts);
+        setEvidenceCount((storage.get('inboxos_eb1a_evidence') || []).length);
+        setUsageCount((storage.get('inboxos_usage_log') || []).length);
+      } catch (e) { console.error(e); }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  if (!info) return <div style={{ color: 'var(--ink-2)', fontSize: 12 }}>Loading diagnostics…</div>;
+
+  const usedMB = info.idbQuota ? (info.idbQuota.used / 1024 / 1024).toFixed(2) : '?';
+  const quotaMB = info.idbQuota ? (info.idbQuota.quota / 1024 / 1024).toFixed(0) : '?';
+  const ratio = info.idbQuota ? (info.idbQuota.used / info.idbQuota.quota) : 0;
+
+  return (
+    <div>
+      <div className="stat-grid" style={{ marginBottom: 0, borderRadius: 8 }}>
+        <div className="stat-card">
+          <div className="stat-label">Accounts</div>
+          <div className="stat-value" style={{ fontSize: 22 }}>{accountCount}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Analyses cached</div>
+          <div className="stat-value" style={{ fontSize: 22 }}>{analysisCount}</div>
+          <div className="stat-sub">no re-AI on refresh</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Usage log entries</div>
+          <div className="stat-value" style={{ fontSize: 22 }}>{usageCount}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Evidence saved</div>
+          <div className="stat-value" style={{ fontSize: 22 }}>{evidenceCount}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Storage used</div>
+          <div className="stat-value" style={{ fontSize: 22 }}>{usedMB} MB</div>
+          <div className="stat-sub">of ~{quotaMB} MB</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Backend</div>
+          <div className="stat-value" style={{ fontSize: 22, color: 'var(--accent-dim)' }}>{info.hydrated ? 'IDB' : 'LS'}</div>
+          <div className="stat-sub">{info.hydrated ? 'indexeddb active' : 'fallback'}</div>
+        </div>
+      </div>
+      {analysisCount === 0 && accountCount > 0 && (
+        <div className="banner warn" style={{ marginTop: 12, borderRadius: 8 }}>
+          <Icon name="alert" size={12} />
+          No AI analyses cached — every refresh will re-run AI. If this persists after scanning emails, your browser may be clearing IndexedDB. Check that you're not in Incognito/Private mode, and that "Clear cookies and site data on exit" is off for this site.
+        </div>
+      )}
+      {ratio > 0.8 && (
+        <div className="banner warn" style={{ marginTop: 12, borderRadius: 8 }}>
+          <Icon name="alert" size={12} />
+          Storage {Math.round(ratio * 100)}% full. Consider clearing old usage logs from the Usage page.
+        </div>
+      )}
     </div>
   );
 }
@@ -2832,6 +3514,139 @@ function EvidenceModal({ onClose }) {
 }
 
 /* ============================================================
+   EXPANDED EMAIL READER
+   ============================================================ */
+
+function ExpandedReader({ email, accounts, analysis, onClose, onReply, onArchive, onTrash, onAnalyze, analyzing, config, onLabelEb1aEvidence, onUnsubscribe }) {
+  const account = accounts.find(a => a.id === email.receivingAccountId);
+
+  // ESC to close
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div className="reader-overlay" onClick={(e) => { if (e.target.classList.contains('reader-overlay')) onClose(); }}>
+      <div className="reader-modal">
+        <button className="icon-btn reader-close" onClick={onClose} title="Close (Esc)">
+          <Icon name="x" size={16} />
+        </button>
+        <div className="reader-head">
+          <div className="reader-subject">{email.subject}</div>
+          <div className="reader-meta">
+            <span style={{ color: 'var(--ink-0)', fontWeight: 500 }}>{email.from.name}</span>
+            <span>&lt;{email.from.email}&gt;</span>
+            <span style={{ color: 'var(--ink-3)' }}>·</span>
+            <span>{new Date(email.date).toLocaleString()}</span>
+          </div>
+          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div className="detail-routing" style={{ margin: 0, flex: '1 1 auto', minWidth: 220 }}>
+              <div className="account-dot" style={{ background: account?.color || 'var(--ink-3)' }}></div>
+              <span className="routing-label">On</span>
+              <span style={{ color: 'var(--ink-0)', fontWeight: 500 }}>{account?.label}</span>
+              <span style={{ color: 'var(--ink-2)', marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontSize: 10.5 }}>{email.receivingAccountEmail}</span>
+            </div>
+            {analysis && (
+              <span className="email-ai-tag">
+                Category: {analysis.category} · Priority: {analysis.priority}
+              </span>
+            )}
+          </div>
+          {analysis?.eb1aSignal?.detected && (
+            <div className="eb1a-callout" style={{ marginTop: 10 }}>
+              <div className="eb1a-title">
+                <Icon name="target" size={10} />
+                EB-1A signal · {CRITERION_LABELS[analysis.eb1aSignal.criterion] || analysis.eb1aSignal.criterion}
+              </div>
+              <div className="eb1a-explanation">{analysis.eb1aSignal.explanation}</div>
+              <button className="btn sm" onClick={() => onLabelEb1aEvidence(email, analysis)}>
+                <Icon name="star" size={11} /> Save as evidence
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="reader-body">{email.body || email.snippet}</div>
+        <div className="reader-actions">
+          <button className="btn primary" onClick={() => { onClose(); onReply(email); }}>
+            <Icon name="reply" size={12} /> Reply
+          </button>
+          {!analysis && (
+            <button className="btn" disabled={analyzing || !config.anthropicApiKey} onClick={() => onAnalyze(email)}>
+              {analyzing ? <><span className="spinner"></span> Analyzing...</> : <><Icon name="sparkles" size={12} /> Analyze with AI</>}
+            </button>
+          )}
+          <button className="btn" onClick={() => { onClose(); onArchive(email); }}>
+            <Icon name="archive" size={12} /> Archive
+          </button>
+          {email.unsubscribe && (
+            <button className="btn" onClick={() => { onClose(); onUnsubscribe(email); }} style={{ color: '#8a6acc', borderColor: 'rgba(200,168,212,0.4)' }}>
+              <Icon name="x" size={12} /> Unsubscribe
+            </button>
+          )}
+          <button className="btn danger" onClick={() => { onClose(); onTrash(email); }} title="Moves to Gmail Trash (auto-deleted after 30 days)">
+            <Icon name="trash" size={12} /> Move to Trash
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   EVIDENCE INFO MODAL — what the register is and how to use it
+   ============================================================ */
+
+function EvidenceInfoModal({ onClose }) {
+  return (
+    <div className="modal-overlay" onClick={(e) => { if (e.target.classList.contains('modal-overlay')) onClose(); }}>
+      <div className="modal" style={{ maxWidth: 680 }}>
+        <div className="modal-head">
+          <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, fontWeight: 400, letterSpacing: '-0.01em' }}>How the Evidence Register works</h3>
+          <button className="icon-btn" onClick={onClose} style={{ marginLeft: 'auto' }}><Icon name="x" size={14} /></button>
+        </div>
+        <div className="modal-body" style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--ink-1)' }}>
+          <p style={{ marginBottom: 14 }}>
+            USCIS requires an EB-1A petition to document evidence across at least <strong style={{ color: 'var(--ink-0)' }}>3 of 10 criteria</strong> of extraordinary ability. Real-world signals of those criteria arrive constantly in email — citation alerts, judging invitations, media requests, award nominations — but they're easy to lose in the daily flood.
+          </p>
+          <p style={{ marginBottom: 14 }}>
+            The <strong style={{ color: 'var(--ink-0)' }}>EB-1A Radar</strong> surfaces emails the AI flags as matching one of the criteria. The <strong style={{ color: 'var(--ink-0)' }}>Evidence Register</strong> is your curated archive of the ones worth saving for your petition.
+          </p>
+          <div style={{ background: 'var(--bg-2)', padding: 14, borderRadius: 8, marginBottom: 14, border: '1px solid var(--line)' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-3)', marginBottom: 8 }}>Workflow</div>
+            <ol style={{ margin: 0, paddingLeft: 18, color: 'var(--ink-1)' }}>
+              <li style={{ marginBottom: 6 }}>AI analyzes email → detects EB-1A signal → appears in Radar</li>
+              <li style={{ marginBottom: 6 }}>You review the email. If it's genuine evidence, click <strong>Save as evidence</strong></li>
+              <li style={{ marginBottom: 6 }}>The record (date, sender, criterion, explanation) is saved to the register</li>
+              <li style={{ marginBottom: 6 }}>If it's a false positive, click the × on the radar card to dismiss it</li>
+              <li>When preparing your petition, <strong>Export CSV</strong> from the register and hand it to your lawyer or import into your evidence binder</li>
+            </ol>
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-3)', marginBottom: 8 }}>Criteria tracked</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', fontSize: 12 }}>
+            <div><strong style={{ color: 'var(--cat-eb1a)' }}>Judging</strong> — paper reviews, grant panels, competitions</div>
+            <div><strong style={{ color: 'var(--cat-eb1a)' }}>Publications</strong> — citations, co-author invites, acceptances</div>
+            <div><strong style={{ color: 'var(--cat-eb1a)' }}>Awards</strong> — nominations, honors, prizes</div>
+            <div><strong style={{ color: 'var(--cat-eb1a)' }}>Media</strong> — press, podcast, interview requests</div>
+            <div><strong style={{ color: 'var(--cat-eb1a)' }}>Critical role</strong> — leadership recognition</div>
+            <div><strong style={{ color: 'var(--cat-eb1a)' }}>Memberships</strong> — invitations to distinguished orgs</div>
+            <div><strong style={{ color: 'var(--cat-eb1a)' }}>Contributions</strong> — work cited or built upon</div>
+            <div><strong style={{ color: 'var(--cat-eb1a)' }}>High salary</strong> — exceptional compensation offers</div>
+          </div>
+          <p style={{ marginTop: 14, fontSize: 12, color: 'var(--ink-2)' }}>
+            The register is stored locally on this device. Export often — clearing browser data wipes it. The CSV export is suitable for direct handoff to immigration counsel.
+          </p>
+        </div>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--line)', background: 'var(--bg-2)', display: 'flex', justifyContent: 'flex-end' }}>
+          <button className="btn primary" onClick={onClose}>Got it</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
    MAIN APP
    ============================================================ */
 
@@ -2843,6 +3658,12 @@ function App() {
   const [selectedAccountId, setSelectedAccountId] = useState('all');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [selectedThreadId, setSelectedThreadId] = useState(null);
+  const [selectedThreadIds, setSelectedThreadIds] = useState(new Set()); // for multi-select
+  const [expandedEmail, setExpandedEmail] = useState(null); // expanded full-screen view
+  const [listWidth, setListWidth] = useState(() => {
+    const saved = parseInt(localStorage.getItem('inboxos_list_width') || '0', 10);
+    return saved > 0 ? saved : 0; // 0 = use CSS default
+  });
   const [emailsByAccount, setEmailsByAccount] = useState({});
   const [analyses, setAnalyses] = useState({});
   const [loading, setLoading] = useState({});
@@ -2851,6 +3672,9 @@ function App() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerEmail, setComposerEmail] = useState(null);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [evidenceInfoOpen, setEvidenceInfoOpen] = useState(false);
+  const [scanProgress, setScanProgress] = useState(null); // {total, done, label}
+  const [lastSyncTick, setLastSyncTick] = useState(0); // triggers re-render for "X min ago"
 
   // hydrate analyses from storage
   useEffect(() => {
@@ -2863,6 +3687,23 @@ function App() {
     }
     setAnalyses(next);
   }, []);
+
+  // tick every 30s so "last synced X min ago" updates
+  useEffect(() => {
+    const id = setInterval(() => setLastSyncTick(t => t + 1), 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  // clear multi-select when filters change
+  useEffect(() => {
+    setSelectedThreadIds(new Set());
+  }, [selectedAccountId, selectedCategoryId]);
+
+  // most recent sync across all accounts
+  const mostRecentSync = useMemo(() => {
+    const syncs = accounts.map(a => a.lastSynced || 0).filter(Boolean);
+    return syncs.length ? Math.max(...syncs) : 0;
+  }, [accounts, lastSyncTick]);
 
   // flat list of emails across all accounts
   const allEmails = useMemo(() => {
@@ -2946,13 +3787,17 @@ function App() {
   async function fetchAccountEmails(account) {
     setLoading(l => ({ ...l, [account.id]: true }));
     try {
+      const pullLimit = config.pullLimit || 100;
+      const window = config.pullWindow || '1d';
+      // Build Gmail search query with time window
+      const query = window === 'all' ? 'in:inbox' : `in:inbox newer_than:${window}`;
       const list = await listThreads(account, config.googleClientId, (acc) => {
         saveAccount(acc);
         setAccounts(a => a.map(x => x.id === acc.id ? acc : x));
-      });
+      }, query, pullLimit);
       const threadIds = (list.threads || []).map(t => t.id);
       const emails = [];
-      for (const tid of threadIds.slice(0, 25)) {
+      for (const tid of threadIds.slice(0, pullLimit)) {
         try {
           const thread = await getThread(account, config.googleClientId, () => {}, tid);
           const normalized = normalizeThread(thread, account);
@@ -2985,23 +3830,121 @@ function App() {
 
   // === Analysis ===
   async function autoScanEmails(emails) {
-    const toAnalyze = emails.filter(e => !analyses[e.threadId]).slice(0, 25);
-    if (toAnalyze.length === 0) return;
+    const analysisCap = config.analysisCapPerRefresh || 50;
+    // Get domain memory — if we've seen this sender before, reuse their category
+    const domainMemory = storage.get('inboxos_domain_memory', {});
+
+    const toProcess = emails.filter(e => !analyses[e.threadId]);
+    if (toProcess.length === 0) return;
+
+    // Step 1: Try free rule-based classification for every email
+    // Step 2: Try domain memory for emails we've seen before
+    // Step 3: Only AI-analyze what's left, capped at analysisCap
+    const needsAI = [];
+    const freeResults = [];
+
+    for (const email of toProcess) {
+      // Rule-based pre-classifier (free)
+      if (config.skipAIForObvious !== false) {
+        const preResult = preClassify(email);
+        if (preResult) {
+          freeResults.push({ email, result: preResult });
+          continue;
+        }
+      }
+      // Domain memory: we've seen this sender categorized before
+      const domain = (email.from.email || '').split('@')[1]?.toLowerCase();
+      if (domain && domainMemory[domain]) {
+        const mem = domainMemory[domain];
+        // Only trust if we've seen this domain categorized 3+ times the same way
+        if (mem.count >= 3) {
+          freeResults.push({
+            email,
+            result: makeAnalysis(mem.category, `Similar to ${mem.count} previous emails from ${domain}`, 'review', 'low'),
+          });
+          continue;
+        }
+      }
+      needsAI.push(email);
+    }
+
+    // Save free results instantly — no API cost
+    for (const { email, result } of freeResults) {
+      const record = { threadId: email.threadId, analyzedAt: Date.now(), ...result };
+      saveAnalysis(record);
+      setAnalyses(a => ({ ...a, [email.threadId]: record }));
+    }
+
+    const toAnalyze = needsAI.slice(0, analysisCap);
+    const skippedCount = needsAI.length - toAnalyze.length;
+
+    if (toAnalyze.length === 0) {
+      if (freeResults.length > 0) toast(`${freeResults.length} emails classified for free (no AI needed)`, 'info');
+      return;
+    }
+
+    setScanProgress({ total: toAnalyze.length, done: 0, label: 'Scanning with AI' });
     const batchSize = 5;
+    let done = 0;
     for (let i = 0; i < toAnalyze.length; i += batchSize) {
-      // recompute budget
       const spend = summarizeUsage(usageFilter(loadUsageLog(), 'month')).cost;
       if (spend >= config.budgetCapMonthly) {
         toast('Budget cap reached — Mode B paused', 'warn');
+        setScanProgress(null);
         return;
       }
       const batch = toAnalyze.slice(i, i + batchSize);
       await Promise.all(batch.map(e => runAnalysis(e, 'auto_scan')));
+      done += batch.length;
+      setScanProgress({ total: toAnalyze.length, done, label: 'Scanning with AI' });
       if (i + batchSize < toAnalyze.length) await new Promise(r => setTimeout(r, 200));
+    }
+    setScanProgress(null);
+
+    // After all analyses, update domain memory based on the results
+    updateDomainMemory(toAnalyze);
+
+    if (skippedCount > 0) {
+      toast(`${done} analyzed, ${skippedCount} over cap (open manually to analyze)`, 'warn');
+    } else if (freeResults.length > 0) {
+      toast(`${done} AI analyses, ${freeResults.length} free classifications`, 'info');
     }
   }
 
+  // Track which domains get categorized a certain way, so future emails from
+  // the same domain can skip AI
+  function updateDomainMemory(emails) {
+    const mem = storage.get('inboxos_domain_memory', {});
+    for (const email of emails) {
+      const a = analyses[email.threadId] || loadAnalysis(email.threadId);
+      if (!a || a.preClassified) continue;
+      const domain = (email.from.email || '').split('@')[1]?.toLowerCase();
+      if (!domain) continue;
+      const entry = mem[domain] || { category: null, count: 0, categories: {} };
+      entry.categories[a.category] = (entry.categories[a.category] || 0) + 1;
+      // Winning category = the one most seen
+      const top = Object.entries(entry.categories).sort((a, b) => b[1] - a[1])[0];
+      entry.category = top[0];
+      entry.count = top[1];
+      mem[domain] = entry;
+    }
+    storage.set('inboxos_domain_memory', mem);
+  }
+
   async function runAnalysis(email, callType = 'on_demand_analysis') {
+    // Try free rule-based classification first — saves API cost
+    const preResult = preClassify(email);
+    if (preResult && callType === 'auto_scan') {
+      const record = {
+        threadId: email.threadId,
+        analyzedAt: Date.now(),
+        ...preResult,
+      };
+      saveAnalysis(record);
+      setAnalyses(a => ({ ...a, [email.threadId]: record }));
+      return;
+    }
+
     if (!config.anthropicApiKey) return;
     try {
       const result = await analyzeEmail(email, config);
@@ -3016,6 +3959,7 @@ function App() {
         inputTokens: result.inputTokens,
         outputTokens: result.outputTokens,
         cost: result.cost,
+        model: result.model,
       };
       saveAnalysis(record);
       setAnalyses(a => ({ ...a, [email.threadId]: record }));
@@ -3028,6 +3972,7 @@ function App() {
         outputTokens: result.outputTokens,
         cost: result.cost,
         mode: config.currentMode,
+        model: result.model,
       });
     } catch (e) {
       toast('Analysis failed: ' + e.message, 'error');
@@ -3078,6 +4023,50 @@ function App() {
     } catch (e) { toast('Trash failed: ' + e.message, 'error'); }
   }
 
+  async function handleUnsubscribe(email) {
+    if (!email.unsubscribe) { toast('No unsubscribe option for this email', 'warn'); return; }
+    const { urls, mailtos, oneClick } = email.unsubscribe;
+
+    // Prefer one-click POST (RFC 8058) — fully silent, works for most modern senders
+    if (oneClick && urls.length > 0) {
+      if (!confirm(`Unsubscribe from ${email.from.email}?`)) return;
+      try {
+        const res = await fetch(urls[0], {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'List-Unsubscribe=One-Click',
+        });
+        if (res.ok || res.status < 500) {
+          toast(`Unsubscribe request sent to ${email.from.email}`, 'info');
+          // Also mark and trash the email
+          await handleTrash(email);
+          return;
+        }
+        throw new Error('HTTP ' + res.status);
+      } catch (e) {
+        // CORS blocks are common here; fall through to manual link
+        console.warn('One-click POST failed, opening manual link:', e);
+      }
+    }
+
+    // Open HTTPS unsubscribe page in new tab
+    if (urls.length > 0) {
+      if (!confirm(`Open unsubscribe page for ${email.from.email}? (opens in new tab)`)) return;
+      window.open(urls[0], '_blank', 'noopener,noreferrer');
+      toast(`Opened unsubscribe page. After confirming on the page, come back and trash this email.`, 'info');
+      return;
+    }
+
+    // Last resort: mailto unsubscribe
+    if (mailtos.length > 0) {
+      if (!confirm(`Send unsubscribe email to ${mailtos[0]}?`)) return;
+      window.location.href = `mailto:${mailtos[0]}?subject=Unsubscribe`;
+      return;
+    }
+
+    toast('No usable unsubscribe method found', 'warn');
+  }
+
   function handleSaveEvidence(email, analysis) {
     const record = {
       savedAt: Date.now(),
@@ -3097,6 +4086,107 @@ function App() {
     saveEvidence(list);
     toast('Saved to evidence register', 'info');
   }
+
+  function handleDismissSignal(threadId) {
+    const dismissed = storage.get('inboxos_dismissed_signals', []);
+    if (!dismissed.includes(threadId)) {
+      dismissed.push(threadId);
+      storage.set('inboxos_dismissed_signals', dismissed);
+    }
+    // force re-render
+    setAnalyses(a => ({ ...a }));
+    toast('Dismissed from radar', 'info');
+  }
+
+  function toggleSelect(threadId) {
+    setSelectedThreadIds(prev => {
+      const next = new Set(prev);
+      if (next.has(threadId)) next.delete(threadId);
+      else next.add(threadId);
+      return next;
+    });
+  }
+
+  function selectAllVisible(emails) {
+    setSelectedThreadIds(new Set(emails.map(e => e.threadId)));
+  }
+
+  function clearSelection() {
+    setSelectedThreadIds(new Set());
+  }
+
+  async function handleBatchTrash(emails) {
+    const selected = emails.filter(e => selectedThreadIds.has(e.threadId));
+    if (selected.length === 0) return;
+    if (!confirm(`Move ${selected.length} email${selected.length === 1 ? '' : 's'} to Gmail Trash? (Gmail auto-deletes trashed email after 30 days.)`)) return;
+    setScanProgress({ total: selected.length, done: 0, label: 'Moving to Trash' });
+    let done = 0;
+    let failed = 0;
+    // group by account so we trash in parallel within each account
+    const byAccount = {};
+    for (const e of selected) {
+      if (!byAccount[e.receivingAccountId]) byAccount[e.receivingAccountId] = [];
+      byAccount[e.receivingAccountId].push(e);
+    }
+    for (const accId of Object.keys(byAccount)) {
+      const acc = accounts.find(a => a.id === accId);
+      if (!acc) continue;
+      for (const email of byAccount[accId]) {
+        try {
+          await trashThread(acc, config.googleClientId, () => {}, email.threadId);
+          done++;
+        } catch (e) {
+          failed++;
+        }
+        setScanProgress({ total: selected.length, done: done + failed, label: 'Moving to Trash' });
+      }
+    }
+    // update UI by removing the trashed threads
+    setEmailsByAccount(prev => {
+      const next = { ...prev };
+      for (const accId of Object.keys(byAccount)) {
+        const ids = new Set(byAccount[accId].map(e => e.threadId));
+        next[accId] = (prev[accId] || []).filter(e => !ids.has(e.threadId));
+      }
+      return next;
+    });
+    clearSelection();
+    setScanProgress(null);
+    toast(failed === 0 ? `${done} moved to Trash` : `${done} moved, ${failed} failed`, failed === 0 ? 'info' : 'warn');
+  }
+
+  // Listen for the drag event for resizing
+  const resizeRef = useRef({ active: false, startX: 0, startWidth: 0 });
+  function startResize(e) {
+    resizeRef.current = {
+      active: true,
+      startX: e.clientX,
+      startWidth: listWidth || 560,
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
+  useEffect(() => {
+    function onMove(e) {
+      if (!resizeRef.current.active) return;
+      const dx = e.clientX - resizeRef.current.startX;
+      const next = Math.max(320, Math.min(1200, resizeRef.current.startWidth + dx));
+      setListWidth(next);
+    }
+    function onUp() {
+      if (!resizeRef.current.active) return;
+      resizeRef.current.active = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      localStorage.setItem('inboxos_list_width', String(listWidth));
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [listWidth]);
 
   // === Mode toggle ===
   function setMode(m) {
@@ -3163,9 +4253,15 @@ function App() {
       )}
 
       {page === 'inbox' && (
-        <div className={mainLayoutClass}>
+        <div className={mainLayoutClass} style={page === 'inbox' && listWidth ? { gridTemplateColumns: `240px ${listWidth}px 5px 1fr` } : undefined}>
           <aside className="sidebar">
             <div className="sidebar-scroll">
+              {scanProgress && (
+                <div className="scan-indicator" style={{ marginTop: 14 }}>
+                  <span className="spinner"></span>
+                  <span>{scanProgress.label}: {scanProgress.done}/{scanProgress.total}</span>
+                </div>
+              )}
               <AccountsList
                 accounts={accounts}
                 selectedAccountId={selectedAccountId}
@@ -3184,11 +4280,13 @@ function App() {
                 analyses={analyses}
                 onOpenEvidence={() => setEvidenceOpen(true)}
                 onSelectEmail={(e) => setSelectedThreadId(e.threadId)}
+                onDismissSignal={handleDismissSignal}
+                onOpenInfo={() => setEvidenceInfoOpen(true)}
               />
             </div>
           </aside>
 
-          <section className="list-panel">
+          <section className="list-panel" style={{ position: 'relative' }}>
             <div className="list-header">
               <div>
                 <div className="list-title">
@@ -3197,6 +4295,17 @@ function App() {
                 </div>
               </div>
               <div className="list-actions">
+                {mostRecentSync > 0 && (
+                  <span className="sync-badge" title={'Last refresh: ' + new Date(mostRecentSync).toLocaleString()}>
+                    <span className="sync-dot"></span>
+                    Synced {formatRelative(mostRecentSync)}
+                  </span>
+                )}
+                {filteredEmails.length > 0 && selectedThreadIds.size === 0 && (
+                  <button className="btn sm" onClick={() => selectAllVisible(filteredEmails)} title="Select emails to batch-delete">
+                    <Icon name="check" size={11} /> Select
+                  </button>
+                )}
                 {accounts.length === 0 && (
                   <button className="btn primary sm" onClick={handleAddAccount}>
                     <Icon name="plus" size={12} /> Add account
@@ -3204,6 +4313,22 @@ function App() {
                 )}
               </div>
             </div>
+
+            {selectedThreadIds.size > 0 && (
+              <div className="multiselect-bar">
+                <strong>{selectedThreadIds.size} selected</strong>
+                <button className="btn sm" onClick={() => selectAllVisible(filteredEmails)}>
+                  Select all {filteredEmails.length}
+                </button>
+                <button className="btn sm" onClick={clearSelection}>Clear</button>
+                <button className="btn sm danger" style={{ marginLeft: 'auto' }} onClick={() => handleBatchTrash(filteredEmails)}>
+                  <Icon name="trash" size={11} /> Move {selectedThreadIds.size} to Trash
+                </button>
+              </div>
+            )}
+
+            {scanProgress && <div className="progress-stripe"></div>}
+
             {accounts.length === 0 ? (
               <div className="empty">
                 <div className="empty-icon">◈</div>
@@ -3221,9 +4346,28 @@ function App() {
                 accounts={accounts}
                 analyses={analyses}
                 categories={config.categories}
+                selectedThreadIds={selectedThreadIds}
+                toggleSelect={toggleSelect}
+                multiselectMode={selectedThreadIds.size > 0}
               />
             )}
+
+            {syncingAll && filteredEmails.length === 0 && (
+              <div className="loading-overlay">
+                <div className="loading-ring"></div>
+                <div className="loading-label">Reading emails…</div>
+                <div className="loading-sub">fetching from Gmail</div>
+              </div>
+            )}
           </section>
+
+          {listWidth > 0 && (
+            <div
+              className={`resize-handle ${resizeRef.current.active ? 'dragging' : ''}`}
+              onMouseDown={startResize}
+              title="Drag to resize"
+            ></div>
+          )}
 
           <aside className="detail-panel">
             <DetailPanel
@@ -3237,6 +4381,8 @@ function App() {
               onArchive={handleArchive}
               onTrash={handleTrash}
               onLabelEb1aEvidence={handleSaveEvidence}
+              onExpand={(email) => setExpandedEmail(email)}
+              onUnsubscribe={handleUnsubscribe}
             />
           </aside>
         </div>
@@ -3261,6 +4407,25 @@ function App() {
       )}
 
       {evidenceOpen && <EvidenceModal onClose={() => setEvidenceOpen(false)} />}
+
+      {evidenceInfoOpen && <EvidenceInfoModal onClose={() => setEvidenceInfoOpen(false)} />}
+
+      {expandedEmail && (
+        <ExpandedReader
+          email={expandedEmail}
+          accounts={accounts}
+          analysis={analyses[expandedEmail.threadId]}
+          config={config}
+          onClose={() => setExpandedEmail(null)}
+          onReply={handleReply}
+          onArchive={handleArchive}
+          onTrash={handleTrash}
+          onAnalyze={handleAnalyzeOne}
+          analyzing={analyzingThread === expandedEmail.threadId}
+          onLabelEb1aEvidence={handleSaveEvidence}
+          onUnsubscribe={handleUnsubscribe}
+        />
+      )}
     </>
   );
 }
@@ -3269,16 +4434,24 @@ function App() {
    BOOT
    ============================================================ */
 
-if (typeof handleOAuthRedirect !== 'undefined' && handleOAuthRedirect()) {
-  // legacy, no longer reachable
-} else {
-  const root = ReactDOM.createRoot(document.getElementById('root'));
+(async function boot() {
+  // Show quick loading text while IDB hydrates
+  const rootEl = document.getElementById('root');
+  rootEl.innerHTML = '<div style="position:fixed;inset:0;display:grid;place-items:center;font-family:\'Instrument Serif\',serif;font-style:italic;font-size:28px;color:#8a8196;letter-spacing:-0.01em;">loading your data<span style="animation:blink 1s steps(3) infinite">…</span></div><style>@keyframes blink{0%{opacity:0.3}50%{opacity:1}100%{opacity:0.3}}</style>';
+
+  try {
+    await hydrateStorage();
+  } catch (e) {
+    console.error('[InboxOS] Boot hydration failed:', e);
+  }
+
+  const root = ReactDOM.createRoot(rootEl);
   root.render(
     <ToastProvider>
       <App />
     </ToastProvider>
   );
-}
+})();
 </script>
 </body>
 </html>
