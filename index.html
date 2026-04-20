@@ -11,6 +11,7 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   /* ---------- design tokens — pastel light ---------- */
   :root {
@@ -1393,124 +1394,104 @@ function randomId() {
 }
 
 /* ============================================================
-   OAUTH FLOW
+   OAUTH FLOW — Google Identity Services (token flow)
    ============================================================ */
+
+// Wait for GIS to be ready
+function waitForGIS() {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.oauth2) return resolve();
+    let waited = 0;
+    const interval = setInterval(() => {
+      if (window.google?.accounts?.oauth2) {
+        clearInterval(interval);
+        resolve();
+      } else if (waited > 5000) {
+        clearInterval(interval);
+        reject(new Error('Google Identity Services did not load. Check your internet connection.'));
+      }
+      waited += 100;
+    }, 100);
+  });
+}
 
 async function startOAuthFlow(clientId) {
   if (!clientId) throw new Error('Google OAuth Client ID not set. Configure it in Settings.');
-  const { verifier, challenge } = await generatePKCE();
-  const state = randomId();
-  const redirectUri = window.location.origin + window.location.pathname;
-
-  sessionStorage.setItem(`oauth_verifier_${state}`, verifier);
-  sessionStorage.setItem(`oauth_redirect_${state}`, redirectUri);
-
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    response_type: 'code',
-    scope: OAUTH_SCOPES,
-    code_challenge: challenge,
-    code_challenge_method: 'S256',
-    access_type: 'offline',
-    prompt: 'consent',
-    state,
-  });
-
-  const url = `${GOOGLE_AUTH_ENDPOINT}?${params.toString()}`;
-  const popup = window.open(url, 'inboxos_oauth', 'width=520,height=640,left=' + ((screen.width-520)/2) + ',top=' + ((screen.height-640)/2));
-  if (!popup) throw new Error('Popup blocked. Please allow popups for this site.');
+  await waitForGIS();
 
   return new Promise((resolve, reject) => {
-    const handleMessage = async (event) => {
-      if (event.origin !== window.location.origin) return;
-      if (!event.data || event.data.type !== 'oauth_callback') return;
-      window.removeEventListener('message', handleMessage);
-      try {
-        const code = event.data.code;
-        const returnedState = event.data.state;
-        if (returnedState !== state) throw new Error('State mismatch — OAuth flow was tampered with.');
-        const savedVerifier = sessionStorage.getItem(`oauth_verifier_${state}`);
-        const savedRedirect = sessionStorage.getItem(`oauth_redirect_${state}`);
-        sessionStorage.removeItem(`oauth_verifier_${state}`);
-        sessionStorage.removeItem(`oauth_redirect_${state}`);
+    try {
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: OAUTH_SCOPES,
+        prompt: 'consent',
+        callback: async (response) => {
+          if (response.error) {
+            reject(new Error('OAuth error: ' + (response.error_description || response.error)));
+            return;
+          }
+          try {
+            // Fetch the profile to get the email address
+            const profileRes = await fetch(`${GMAIL_API_BASE}/profile`, {
+              headers: { Authorization: 'Bearer ' + response.access_token },
+            });
+            if (!profileRes.ok) throw new Error('Failed to fetch Gmail profile');
+            const profile = await profileRes.json();
 
-        const tokenRes = await fetch(GOOGLE_TOKEN_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            grant_type: 'authorization_code',
-            client_id: clientId,
-            code,
-            redirect_uri: savedRedirect,
-            code_verifier: savedVerifier,
-          }),
-        });
-        if (!tokenRes.ok) {
-          const err = await tokenRes.text();
-          throw new Error('Token exchange failed: ' + err);
-        }
-        const tokens = await tokenRes.json();
-
-        // fetch profile to get email
-        const profileRes = await fetch(`${GMAIL_API_BASE}/profile`, {
-          headers: { Authorization: 'Bearer ' + tokens.access_token },
-        });
-        if (!profileRes.ok) throw new Error('Failed to fetch Gmail profile');
-        const profile = await profileRes.json();
-
-        resolve({
-          email: profile.emailAddress,
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token || '',
-          tokenExpiry: Date.now() + (tokens.expires_in * 1000),
-        });
-      } catch (e) { reject(e); }
-    };
-    window.addEventListener('message', handleMessage);
-
-    const checkClosed = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkClosed);
-        window.removeEventListener('message', handleMessage);
-        reject(new Error('OAuth popup closed before completion.'));
-      }
-    }, 500);
+            resolve({
+              email: profile.emailAddress,
+              accessToken: response.access_token,
+              refreshToken: '', // GIS token flow does not provide refresh tokens
+              tokenExpiry: Date.now() + ((response.expires_in || 3600) * 1000),
+            });
+          } catch (e) {
+            reject(e);
+          }
+        },
+        error_callback: (err) => {
+          reject(new Error('OAuth flow failed: ' + (err.message || err.type || 'unknown error')));
+        },
+      });
+      tokenClient.requestAccessToken();
+    } catch (e) {
+      reject(e);
+    }
   });
 }
 
-// check for OAuth callback on page load
-function handleOAuthRedirect() {
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  const state = params.get('state');
-  if (code && state && window.opener) {
-    window.opener.postMessage({ type: 'oauth_callback', code, state }, window.location.origin);
-    window.close();
-    return true;
-  }
-  return false;
-}
-
+// GIS token flow doesn't give refresh tokens — re-auth is via silent token request or full re-auth
 async function refreshAccessToken(account, clientId) {
-  if (!account.refreshToken) throw new Error('No refresh token — reconnect required');
-  const res = await fetch(GOOGLE_TOKEN_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'refresh_token',
-      client_id: clientId,
-      refresh_token: account.refreshToken,
-    }),
+  await waitForGIS();
+
+  return new Promise((resolve, reject) => {
+    try {
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: OAUTH_SCOPES,
+        hint: account.email,  // helps Google know which account to reuse
+        prompt: '',           // silent refresh — no popup if session is still valid
+        callback: (response) => {
+          if (response.error) {
+            // silent refresh failed — user needs to re-auth
+            reject(new Error('needs_reauth'));
+            return;
+          }
+          resolve({
+            ...account,
+            accessToken: response.access_token,
+            tokenExpiry: Date.now() + ((response.expires_in || 3600) * 1000),
+            status: 'active',
+          });
+        },
+        error_callback: () => {
+          reject(new Error('needs_reauth'));
+        },
+      });
+      tokenClient.requestAccessToken();
+    } catch (e) {
+      reject(e);
+    }
   });
-  if (!res.ok) throw new Error('Refresh failed');
-  const t = await res.json();
-  return {
-    ...account,
-    accessToken: t.access_token,
-    tokenExpiry: Date.now() + (t.expires_in * 1000),
-    status: 'active',
-  };
 }
 
 /* ============================================================
@@ -1903,7 +1884,7 @@ function Onboarding({ config, onComplete }) {
         <li>Go to <code>console.cloud.google.com</code> and create a project</li>
         <li>Under APIs & Services, enable <code>Gmail API</code></li>
         <li>Create OAuth credentials of type <strong>Web application</strong></li>
-        <li>Add this URL as an authorized redirect URI: <code>{window.location.origin + window.location.pathname}</code></li>
+        <li>Add this URL as an <strong>Authorized JavaScript origin</strong>: <code>{window.location.origin}</code></li>
         <li>Copy the Client ID on the next step</li>
       </ol>
     </>),
@@ -3288,8 +3269,8 @@ function App() {
    BOOT
    ============================================================ */
 
-if (handleOAuthRedirect()) {
-  // page will close itself
+if (typeof handleOAuthRedirect !== 'undefined' && handleOAuthRedirect()) {
+  // legacy, no longer reachable
 } else {
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(
